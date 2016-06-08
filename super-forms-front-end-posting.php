@@ -144,7 +144,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 // Filters since 1.0.0
 
                 // Actions since 1.0.0
-                add_action( 'super_before_sending_email_hook', array( $this, 'before_sending_email' ) );
+                add_action( 'super_before_email_success_msg_action', array( $this, 'before_email_success_msg' ) );
 
             }
             
@@ -155,9 +155,9 @@ if(!class_exists('SUPER_Frontend_Posting')) :
          *
          *  @since      1.0.0
         */
-        public static function before_sending_email( $atts ) {
+        public static function before_email_success_msg( $atts ) {
 
-            $data = $atts['post']['data'];
+            $data = get_post_meta( $atts['entry_id'], '_super_contact_entry_data', true );
             $settings = $atts['settings'];
             
             if( !isset( $settings['frontend_posting_action'] ) ) return true;
@@ -190,7 +190,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 // Lets check if tax_input field exists
                 // If so, let's check if the post_taxonomy exists, because this is required in order to connect the categories accordingly to the post.
                 if( isset( $data['tax_input'] ) ) {
-                    if( (!isset( $settings['frontend_posting_post_taxonomy'] )) || ($settings['frontend_posting_post_taxonomy']=='') ) {
+                    if( (!isset( $settings['frontend_posting_post_cat_taxonomy'] )) || ($settings['frontend_posting_post_cat_taxonomy']=='') ) {
                         $msg = __( 'You have a field called <strong>tax_input</strong> but you haven\'t set a valid taxonomy name. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' );
                         SUPER_Common::output_error(
                             $error = true,
@@ -198,8 +198,30 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                             $redirect = null
                         );
                     }else{
-                        if ( !taxonomy_exists( $settings['frontend_posting_post_taxonomy'] ) ) {
-                            $msg = sprintf( __( 'The taxonomy <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' ), $settings['frontend_posting_post_taxonomy'] );
+                        if ( !taxonomy_exists( $settings['frontend_posting_post_cat_taxonomy'] ) ) {
+                            $msg = sprintf( __( 'The taxonomy <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' ), $settings['frontend_posting_post_cat_taxonomy'] );
+                            SUPER_Common::output_error(
+                                $error = true,
+                                $msg = $msg,
+                                $redirect = null
+                            );
+                        }
+                    }
+                }
+
+                // Lets check if tax_input field exists
+                // If so, let's check if the post_taxonomy exists, because this is required in order to connect the categories accordingly to the post.
+                if( isset( $data['tax_input'] ) ) {
+                    if( (!isset( $settings['frontend_posting_post_tag_taxonomy'] )) || ($settings['frontend_posting_post_tag_taxonomy']=='') ) {
+                        $msg = __( 'You have a field called <strong>tag_input</strong> but you haven\'t set a valid taxonomy name. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' );
+                        SUPER_Common::output_error(
+                            $error = true,
+                            $msg = $msg,
+                            $redirect = null
+                        );
+                    }else{
+                        if ( !taxonomy_exists( $settings['frontend_posting_post_tag_taxonomy'] ) ) {
+                            $msg = sprintf( __( 'The taxonomy <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' ), $settings['frontend_posting_post_tag_taxonomy'] );
                             SUPER_Common::output_error(
                                 $error = true,
                                 $msg = $msg,
@@ -218,13 +240,23 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 $postarr['comment_status'] = sanitize_text_field( $settings['frontend_posting_comment_status'] );
                 $postarr['ping_status'] = sanitize_text_field( $settings['frontend_posting_ping_status'] );
                 $postarr['post_password'] = $settings['frontend_posting_post_password'];
-                $postarr['post_author'] = absint( $settings['frontend_posting_author'] );
+                if($settings['frontend_posting_author']!='') {
+                    $postarr['post_author'] = absint( $settings['frontend_posting_author'] );
+                }
+                $post_format = sanitize_text_field( $settings['frontend_posting_post_format'] );
+                $tax_input = sanitize_text_field( $settings['frontend_posting_tax_input'] );
+                $tags_input = sanitize_text_field( $settings['frontend_posting_tags_input'] );
 
                 // Override default values for form field values
                 $postarr['post_title'] = $data['post_title']['value'];
                 if( isset( $data['post_content'] ) ) $postarr['post_content'] = $data['post_content']['value'];
                 if( isset( $data['post_excerpt'] ) ) $postarr['post_excerpt'] = $data['post_excerpt']['value'];
                 if( isset( $data['post_type'] ) ) $postarr['post_type'] = sanitize_text_field( $data['post_type']['value'] );
+                if( isset( $data['post_format'] ) ) $post_format = sanitize_text_field( $data['post_format']['value'] );
+                if( isset( $data['tax_input'] ) ) $tax_input = sanitize_text_field( $data['tax_input']['value'] );
+                if( isset( $data['tags_input'] ) ) $tags_input = sanitize_text_field( $data['tags_input']['value'] );
+
+
                 if( isset( $data['post_status'] ) ) $postarr['post_status'] = sanitize_text_field( $data['post_status']['value'] );
                 if( isset( $data['post_parent'] ) ) $postarr['post_parent'] = absint( $data['post_parent']['value'] );
                 if( isset( $data['comment_status'] ) ) $postarr['comment_status'] = sanitize_text_field( $data['comment_status']['value'] );
@@ -241,21 +273,6 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     }
                 }
 
-                // Collect categories from the field tax_input (only if field can be found)
-                if( isset( $data['tax_input'] ) ) {
-                    $tax_input = array();
-                    $categories = explode( ",", $data['tax_input']['value'] );
-                    foreach( $categories as $slug ) {
-                        $slug = trim($slug);
-                        if( !empty( $slug ) ) {
-                            $term = get_term_by( 'slug', $slug, $settings['frontend_posting_post_taxonomy'] );
-                            $term_id = $term->term_id;
-                            $tax_input[$settings['frontend_posting_post_taxonomy']][] = $term_id;
-                        }
-                    }
-                    $postarr['tax_input'] = $tax_input;
-                }
-
                 // Get the post ID or return the error(s)
                 $result = wp_insert_post( $postarr, true );
                 if( isset( $result->errors ) ) {
@@ -269,8 +286,127 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         $redirect = null
                     );
                 }else{
-                    // Save custom post meta
+
                     $post_id = $result;
+
+                    // Collect categories from the field tax_input
+                    if( $tax_input!='' ) {
+                        $tax_input_array = array();
+                        $categories = explode( ",", $tax_input );
+                        foreach( $categories as $slug ) {
+                            $slug = trim($slug);
+                            if( !empty( $slug ) ) {
+                                $tax_input_array[] = $slug;
+                            }
+                        }
+                        wp_set_object_terms($post_id, $tax_input_array, $settings['frontend_posting_post_cat_taxonomy'] );
+                    }
+
+                    // Collect tags from the field tags_input
+                    if( $tags_input!='' ) {
+                        $tags_input_array = array();
+                        $categories = explode( ",", $tags_input );
+                        foreach( $categories as $slug ) {
+                            $slug = trim($slug);
+                            if( !empty( $slug ) ) {
+                                $tags_input_array[] = $slug;
+                            }
+                        }
+                        wp_set_object_terms($post_id, $tags_input_array, $settings['frontend_posting_post_tag_taxonomy'] );
+                    }
+
+                    // Check if we are saving a WooCommerce product
+                    if( $postarr['post_type']=='product' ) {
+
+                        // Set the product type (default = simple)
+                        $product_type = sanitize_text_field( $settings['frontend_posting_product_type'] );
+                        if( isset( $data['product_type'] ) ) $product_type = sanitize_text_field( $data['product_type']['value'] );
+                        if($product_type=='') $product_type = 'simple';
+                        wp_set_object_terms($post_id, $product_type, 'product_type');
+
+                        // Save all the product meta data
+                        $fields = array(
+                            'product_downloadable' => '_downloadable',
+                            'product_virtual' => '_virtual',
+                            'product_visibility' => '_visibility',
+                            'product_featured' => '_featured',
+                            'product_stock_status' => '_stock_status',
+                            'product_manage_stock' => '_manage_stock',
+                            'product_stock' => '_stock',
+                            'product_backorders' => '_backorders',
+                            'product_sold_individually' => '_sold_individually',
+                            'product_regular_price' => '_regular_price',
+                            'product_sale_price' => '_sale_price',
+                            'product_purchase_note' => '_purchase_note',
+                            'product_weight' => '_weight',
+                            'product_length' => '_length',
+                            'product_width' => '_width',
+                            'product_height' => '_height',
+                            'product_sku' => '_sku',
+                            'product_attributes' => '_product_attributes',
+                            'product_sale_price_dates_from' => '_sale_price_dates_from',
+                            'product_sale_price_dates_to' => '_sale_price_dates_to',
+                            'product_price' => '_price',
+                            
+                            
+                            'product_downloadable_files' => '_downloadable_files',
+                            'product_download_limit' => '_download_limit',
+                            'product_download_expiry' => '_download_expiry',
+                            'product_download_type' => '_download_type',
+
+
+                            // Do we really need this? I don't think so, if a client requests this we will add it
+                            // For now we will just comment it
+                            //'product_total_sales' => 'total_sales',
+
+                            // file paths will be stored in an array keyed off md5(file path)
+                            //$downdloadArray =array('name'=>"Test", 'file' => $uploadDIR['baseurl']."/video/".$video);
+                            //$file_path =md5($uploadDIR['baseurl']."/video/".$video);
+                            //$_file_paths[  $file_path  ] = $downdloadArray;
+                            // grant permission to any newly added files on any existing orders for this product
+                            // do_action( 'woocommerce_process_product_file_download_paths', $post_id, 0, $downdloadArray );
+                            //update_post_meta( $post_id, '_downloadable_files', $_file_paths);
+                            //update_post_meta( $post_id, '_download_limit', '');
+                            //update_post_meta( $post_id, '_download_expiry', '');
+                            //update_post_meta( $post_id, '_download_type', '');
+
+                        );
+                        foreach( $fields as $k => $v ) {
+                            if( $k!='product_downloadable_files' ) {
+                                $field_value = '';
+                                if( isset( $settings['frontend_posting_'.$k] ) ) $field_value = sanitize_text_field( $settings['frontend_posting_'.$k] );
+                                if( isset( $data[$k] ) ) $field_value = sanitize_text_field( $data[$k]['value'] );
+                                update_post_meta( $post_id, $v, $field_value );
+                            }else{
+                                if( isset( $data['downloadable_files'] ) ) {
+                                    $files = array();
+                                    $_file_paths = array();
+                                    foreach( $data['downloadable_files']['files'] as $v ) {
+                                        $name = get_the_title( $v['attachment'] );
+                                        $url = $v['url'];
+                                        $array = array( 'name'=>$name, 'file' => $url );
+                                        $url = md5( $url );
+                                        $_file_paths[$url] = $array;
+                                    }
+                                    update_post_meta( $post_id, '_downloadable_files', $_file_paths);
+                                }
+                            }
+                        }
+
+                        // If we are saving a WooCommerce product check if we need to add images to the gallery
+                        if( isset( $data['image_gallery'] ) ) {
+                            $files = array();
+                            foreach( $data['image_gallery']['files'] as $v ) {
+                                $files[] = $v['attachment'];
+                            }
+                            $files = implode( ',', $files );
+                            update_post_meta( $post_id, '_product_image_gallery', $files );
+                        }
+
+                    }
+
+
+                    // Save custom post meta
                     $meta_data = array();
                     $custom_meta = explode( "\n", $settings['frontend_posting_meta'] );
                     foreach( $custom_meta as $k ) {
@@ -282,6 +418,22 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     foreach( $meta_data as $k => $v ) {
                         add_post_meta( $post_id, $k, $v );
                     }
+
+                    // Set post format for the post if theme supports it and if it was set by the form settings or by one of the form fields
+                    if ( current_theme_supports( 'post-formats' ) ) {
+                        $post_formats = get_theme_support( 'post-formats' );
+                        if ( is_array( $post_formats[0] ) ) {
+                            if ( in_array( $post_format, $post_formats[0] ) ) {
+                                set_post_format( $post_id , $post_format);
+                            }
+                        }
+                    }
+
+                    // Set the featured image if a file upload field with the name featured_image was found
+                    if( isset( $data['featured_image'] ) ) {
+                        set_post_thumbnail( $post_id, $data['featured_image']['files'][0]['attachment'] );
+                    }
+
                 }
                 exit;
 
@@ -302,60 +454,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
 
             }
 
-            /*
-            'ID'
-            (int) The post ID. If equal to something other than 0, the post with that ID will be updated. Default 0.
-            'post_author'
-            (int) The ID of the user who added the post. Default is the current user ID.
-            'post_date'
-            (string) The date of the post. Default is the current time.
-            'post_date_gmt'
-            (string) The date of the post in the GMT timezone. Default is the value of $post_date.
-            'post_content'
-            (mixed) The post content. Default empty.
-            'post_content_filtered'
-            (string) The filtered post content. Default empty.
-            'post_title'
-            (string) The post title. Default empty.
-            'post_excerpt'
-            (string) The post excerpt. Default empty.
-            'post_status'
-            (string) The post status. Default 'draft'.
-            'post_type'
-            (string) The post type. Default 'post'.
-            'comment_status'
-            (string) Whether the post can accept comments. Accepts 'open' or 'closed'. Default is the value of 'default_comment_status' option.
-            'ping_status'
-            (string) Whether the post can accept pings. Accepts 'open' or 'closed'. Default is the value of 'default_ping_status' option.
-            'post_password'
-            (string) The password to access the post. Default empty.
-            'post_name'
-            (string) The post name. Default is the sanitized post title when creating a new post.
-            'to_ping'
-            (string) Space or carriage return-separated list of URLs to ping. Default empty.
-            'pinged'
-            (string) Space or carriage return-separated list of URLs that have been pinged. Default empty.
-            'post_modified'
-            (string) The date when the post was last modified. Default is the current time.
-            'post_modified_gmt'
-            (string) The date when the post was last modified in the GMT timezone. Default is the current time.
-            'post_parent'
-            (int) Set this for the post it belongs to, if any. Default 0.
-            'menu_order'
-            (int) The order the post should be displayed in. Default 0.
-            'post_mime_type'
-            (string) The mime type of the post. Default empty.
-            'guid'
-            (string) Global Unique ID for referencing the post. Default empty.
-            'tax_input'
-            (array) Array of taxonomy terms keyed by their taxonomy name. Default empty.
-            'meta_input'
-            (array) Array of post meta values keyed by their post meta key. Default empty.
-            */
         }
-
-
-    
 
 
         /**
@@ -450,14 +549,14 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_ping_status' => array(
-                        'name' => __( 'Allow comments', 'super' ),
-                        'desc' => __( 'Whether the post can accept comments', 'super' ),
+                        'name' => __( 'Allow pings', 'super' ),
+                        'desc' => __( 'Whether the post can accept pings', 'super' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_ping_status', $settings['settings'], '' ),
                         'type' => 'select',
                         'values' => array(
                             '' => __( 'Default (use the default_ping_status option)', 'super' ),
-                            'open' => __( 'Open (allow comments)', 'super' ),
-                            'closed' => __( 'Closed (disallow comments)', 'super' ),
+                            'open' => __( 'Open (allow pings)', 'super' ),
+                            'closed' => __( 'Closed (disallow pings)', 'super' ),
                         ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
@@ -479,14 +578,6 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
-                    'frontend_posting_guid' => array(
-                        'name' => __( 'GUID', 'super' ),
-                        'desc' => __( 'Global Unique ID for referencing the post', 'super' ),
-                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_guid', $settings['settings'], '' ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'create_post',
-                    ),
                     'frontend_posting_meta' => array(
                         'name' => __( 'Save custom post meta', 'super' ),
                         'desc' => __( 'Based on your form fields you can save custom meta for your post', 'super' ),
@@ -499,19 +590,176 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     'frontend_posting_author' => array(
                         'name' => __( 'Author ID (default = current user ID if logged in)', 'super' ),
                         'desc' => __( 'The ID of the user where the post will belong to', 'super' ),
-                        'type' => 'textarea',
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_author', $settings['settings'], '' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
-                    'frontend_posting_post_taxonomy' => array(
-                        'name' => __( 'The taxonomy name (e.g: category or product_cat', 'super' ),
+                    'frontend_posting_post_cat_taxonomy' => array(
+                        'name' => __( 'The cat taxonomy name (e.g: category or product_cat)', 'super' ),
                         'desc' => __( 'Required to connect the post to categories (if found)', 'super' ),
-                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_post_taxonomy', $settings['settings'], '' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_post_cat_taxonomy', $settings['settings'], '' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
+                    ),
+                    'frontend_posting_tax_input' => array(
+                        'name' => __( 'The post categories slug(s) (e.g: books, cars)', 'super' ),
+                        'desc' => __( 'Category slug separated by comma', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_tax_input', $settings['settings'], '' ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_action',
+                        'filter_value' => 'create_post',
+                    ),
+                    'frontend_posting_post_tag_taxonomy' => array(
+                        'name' => __( 'The tag taxonomy name (e.g: post_tag or product_tag)', 'super' ),
+                        'desc' => __( 'Required to connect the post to categories (if found)', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_post_tag_taxonomy', $settings['settings'], '' ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_action',
+                        'filter_value' => 'create_post',
+                    ),
+                    'frontend_posting_tags_input' => array(
+                        'name' => __( 'The post tags', 'super' ),
+                        'desc' => __( 'Post tags separated by comma', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_tags_input', $settings['settings'], '' ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_action',
+                        'filter_value' => 'create_post',
+                    ),
+                    'frontend_posting_post_format' => array(
+                        'name' => __( 'The post format (e.g: quote, gallery, audio etc.', 'super' ),
+                        'desc' => __( 'Leave blank for no post format', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_post_format', $settings['settings'], '' ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_action',
+                        'filter_value' => 'create_post',
+                    ),
+                    'frontend_posting_guid' => array(
+                        'name' => __( 'GUID', 'super' ),
+                        'desc' => __( 'Global Unique ID for referencing the post', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_guid', $settings['settings'], '' ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_action',
+                        'filter_value' => 'create_post',
+                    ),
+                    'frontend_posting_product_type' => array(
+                        'name' => __( 'Product Type (e.g: simple, grouped, external, variable)', 'super' ),
+                        'desc' => __( 'Leave blank to use the default product type: simple', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_type', $settings['settings'], '' ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_post_type',
+                        'filter_value' => 'product',
+                    ),
+                    'frontend_posting_product_featured' => array(
+                        'name' => __( 'Featured product', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_featured', $settings['settings'], 'no' ),
+                        'type' => 'select',
+                        'values' => array(
+                            'no' => __( 'No (default)', 'super' ),
+                            'yes' => __( 'Yes', 'super' ),
+                        ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_post_type',
+                        'filter_value' => 'product',
+                    ),
+                    'frontend_posting_product_stock_status' => array(
+                        'name' => __( 'In stock?', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_stock_status', $settings['settings'], 'yes' ),
+                        'type' => 'select',
+                        'values' => array(
+                            'instock' => __( 'In stock (default)', 'super' ),
+                            'outofstock' => __( 'Out of stock', 'super' ),
+                        ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_post_type',
+                        'filter_value' => 'product',
+                    ),
+                    'frontend_posting_product_manage_stock' => array(
+                        'name' => __( 'Manage stock?', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_manage_stock', $settings['settings'], 'no' ),
+                        'type' => 'select',
+                        'values' => array(
+                            'no' => __( 'No (default)', 'super' ),
+                            'yes' => __( 'Yes', 'super' ),
+                        ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_post_type',
+                        'filter_value' => 'product',
+                    ),
+                    'frontend_posting_product_stock' => array(
+                        'name' => __( 'Stock Qty', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_stock', $settings['settings'], '' ),
+                        'type' => 'slider',
+                        'min' => 0,
+                        'max' => 100,
+                        'steps' => 1,
+                        'filter' => true,
+                        'parent' => 'frontend_posting_product_manage_stock',
+                        'filter_value' => 'yes',
+                    ),
+                    'frontend_posting_product_backorders' => array(
+                        'name' => __( 'Allow Backorders?', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_backorders', $settings['settings'], 'no' ),
+                        'type' => 'select',
+                        'values' => array(
+                            'no' => __( 'Do not allow (default)', 'super' ),
+                            'notify' => __( 'Allow, but notify customer', 'super' ),
+                            'yes' => __( 'Allow', 'super' ),
+                        ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_product_manage_stock',
+                        'filter_value' => 'yes',
+                    ),
+                    'frontend_posting_product_sold_individually' => array(
+                        'name' => __( 'Sold individually?', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_sold_individually', $settings['settings'], 'no' ),
+                        'type' => 'select',
+                        'values' => array(
+                            'no' => __( 'No (default)', 'super' ),
+                            'yes' => __( 'Yes', 'super' ),
+                        ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_post_type',
+                        'filter_value' => 'product',
+                    ),
+                    'frontend_posting_product_downloadable' => array(
+                        'name' => __( 'Downloadable product', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_downloadable', $settings['settings'], 'no' ),
+                        'type' => 'select',
+                        'values' => array(
+                            'no' => __( 'No (default)', 'super' ),
+                            'yes' => __( 'Yes', 'super' ),
+                        ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_post_type',
+                        'filter_value' => 'product',
+                    ),
+                    'frontend_posting_product_virtual' => array(
+                        'name' => __( 'Virtual product', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_virtual', $settings['settings'], 'no' ),
+                        'type' => 'select',
+                        'values' => array(
+                            'no' => __( 'No (default)', 'super' ),
+                            'yes' => __( 'Yes', 'super' ),
+                        ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_post_type',
+                        'filter_value' => 'product',
+                    ),
+                    'frontend_posting_product_visibility' => array(
+                        'name' => __( 'Product visibility', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_visibility', $settings['settings'], 'visible' ),
+                        'type' => 'select',
+                        'values' => array(
+                            'visible' => __( 'Catalog & search (default)', 'super' ),
+                            'catalog' => __( 'Catalog', 'super' ),
+                            'search' => __( 'Search', 'super' ),
+                            'hidden' => __( 'Hidden', 'super' ),
+                        ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_post_type',
+                        'filter_value' => 'product',
                     ),
 
                     /*
