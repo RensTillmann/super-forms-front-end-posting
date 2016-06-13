@@ -242,6 +242,11 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 $postarr['post_password'] = $settings['frontend_posting_post_password'];
                 if($settings['frontend_posting_author']!='') {
                     $postarr['post_author'] = absint( $settings['frontend_posting_author'] );
+                }else{
+                    $user_id = get_current_user_id();
+                    if( $user_id!=0 ) {
+                        $postarr['post_author'] = $user_id;
+                    }
                 }
                 $post_format = sanitize_text_field( $settings['frontend_posting_post_format'] );
                 $tax_input = sanitize_text_field( $settings['frontend_posting_tax_input'] );
@@ -255,8 +260,6 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 if( isset( $data['post_format'] ) ) $post_format = sanitize_text_field( $data['post_format']['value'] );
                 if( isset( $data['tax_input'] ) ) $tax_input = sanitize_text_field( $data['tax_input']['value'] );
                 if( isset( $data['tags_input'] ) ) $tags_input = sanitize_text_field( $data['tags_input']['value'] );
-
-
                 if( isset( $data['post_status'] ) ) $postarr['post_status'] = sanitize_text_field( $data['post_status']['value'] );
                 if( isset( $data['post_parent'] ) ) $postarr['post_parent'] = absint( $data['post_parent']['value'] );
                 if( isset( $data['comment_status'] ) ) $postarr['comment_status'] = sanitize_text_field( $data['comment_status']['value'] );
@@ -372,12 +375,17 @@ if(!class_exists('SUPER_Frontend_Posting')) :
 
                         );
                         foreach( $fields as $k => $v ) {
-                            if( $k!='product_downloadable_files' ) {
+                            if( ( $k=='product_sale_price_dates_from' ) || ( $k=='product_sale_price_dates_to' ) ) {
                                 $field_value = '';
-                                if( isset( $settings['frontend_posting_'.$k] ) ) $field_value = sanitize_text_field( $settings['frontend_posting_'.$k] );
-                                if( isset( $data[$k] ) ) $field_value = sanitize_text_field( $data[$k]['value'] );
-                                update_post_meta( $post_id, $v, $field_value );
-                            }else{
+                                if( isset( $data[$k] ) ) {
+                                    if( $data[$k]['value']!='' ) {
+                                        $field_value = strtotime( $data[$k]['value'] );
+                                        update_post_meta( $post_id, $v, $field_value );
+                                    }
+                                }
+                                continue;
+                            }
+                            if( $k=='product_downloadable_files' ) {
                                 if( isset( $data['downloadable_files'] ) ) {
                                     $files = array();
                                     $_file_paths = array();
@@ -390,7 +398,107 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                                     }
                                     update_post_meta( $post_id, '_downloadable_files', $_file_paths);
                                 }
+                                continue;
                             }
+                            if( $k=='product_attributes' ) {
+                                    
+                                // Lets make sure we loop through all the product attributes in case a column was set to use Add more + feature
+                                $_product_attributes = array();
+                                foreach( $data as $dk => $dv ) {
+                                    if( ( ($dk=='product_attributes') || (strpos($dk, 'product_attributes_') !== false) ) && (strpos($dk, 'product_attributes_name') === false) ) {
+                                        $counter = str_replace('product_attributes_', '', $dv['name']);
+                                        $counter = absint($counter);
+                                        $value = '';
+                                        $visible = '1';
+                                        $variation = '0';
+                                        $taxonomy = '0';
+                                        if( $counter==0 ) {
+                                            $name = 'Variation 1';
+                                            if( isset( $data['product_attributes_name'] ) ) {
+                                                $name = sanitize_text_field( $data['product_attributes_name']['value'] );
+                                            }
+                                            if( isset( $data['product_attributes'] ) ) {
+                                                $value = sanitize_text_field( $data['product_attributes']['value'] );
+                                            }
+                                            if( isset( $data['product_attributes_is_visible'] ) ) {
+                                                $visible = sanitize_text_field( $data['product_attributes_is_visible']['value'] );
+                                                if( ($visible=='1') || ($visible=='true') || ($visible=='yes') ) {
+                                                    $visible = '1';
+                                                }
+                                            }
+                                            if( isset( $data['product_attributes_is_variation'] ) ) {
+                                                $variation = sanitize_text_field( $data['product_attributes_is_variation']['value'] );
+                                                if( ($variation=='1') || ($variation=='true') || ($variation=='yes') ) {
+                                                    $variation = '1';
+                                                }
+                                            }
+                                            if( isset( $data['product_attributes_is_taxonomy'] ) ) {
+                                                $taxonomy = sanitize_text_field( $data['product_attributes_is_taxonomy']['value'] );
+                                                if( ($taxonomy=='1') || ($taxonomy=='true') || ($taxonomy=='yes') ) {
+                                                    $taxonomy = '1';
+                                                }
+                                            }
+                                        }else{
+                                            $name = 'Variation ' . $counter;
+                                            if( isset( $data['product_attributes_name_' . $counter] ) ) {
+                                                $name = sanitize_text_field( $data['product_attributes_name_' . $counter]['value'] );
+                                            }
+                                            if( isset( $data['product_attributes_' . $counter] ) ) {
+                                                $value = sanitize_text_field( $data['product_attributes_' . $counter]['value'] );
+                                            }                                            
+                                            if( isset( $data['product_attributes_is_visible_' . $counter] ) ) {
+                                                $visible = sanitize_text_field( $data['product_attributes_is_visible_' . $counter]['value'] );
+                                                if( ($visible=='1') || ($visible=='true') || ($visible=='yes') ) {
+                                                    $visible = '1';
+                                                }
+                                            }
+                                            if( isset( $data['product_attributes_is_variation_' . $counter] ) ) {
+                                                $variation = sanitize_text_field( $data['product_attributes_is_variation_' . $counter]['value'] );
+                                                if( ($variation=='1') || ($variation=='true') || ($variation=='yes') ) {
+                                                    $variation = '1';
+                                                }
+                                            }                                            
+                                            if( isset( $data['product_attributes_is_taxonomy_' . $counter] ) ) {
+                                                $taxonomy = sanitize_text_field( $data['product_attributes_is_taxonomy_' . $counter]['value'] );
+                                                if( ($taxonomy=='1') || ($taxonomy=='true') || ($taxonomy=='yes') ) {
+                                                    $taxonomy = '1';
+                                                }
+                                            }
+                                        }
+                                        $term_taxonomy_ids = wp_set_object_terms( $post_id, $value, $name, true );
+                                        $_product_attributes[$name]['name'] = $name;
+                                        $_product_attributes[$name]['value'] = $value;
+                                        $_product_attributes[$name]['is_visible'] = $visible;
+                                        $_product_attributes[$name]['is_variation'] = $variation;
+                                        $_product_attributes[$name]['is_taxonomy'] = $taxonomy;
+                                        update_post_meta( $post_id, '_product_attributes', $_product_attributes);
+                                    } 
+                                }
+                                //var_dump($data['product_attributes']);
+                                exit;
+
+                                //product_attributes
+                                /*
+                                $files = array();
+                                $_file_paths = array();
+                                foreach( $data['product_attributes']['files'] as $v ) {
+                                    $name = get_the_title( $v['attachment'] );
+                                    $url = $v['url'];
+                                    $array = array( 'name'=>$name, 'file' => $url );
+                                    $url = md5( $url );
+                                    $_file_paths[$url] = $array;
+                                }
+                                update_post_meta( $post_id, '_downloadable_files', $_file_paths);
+                                */
+                                continue;
+                            }
+
+
+
+                            $field_value = '';
+                            if( isset( $settings['frontend_posting_'.$k] ) ) $field_value = sanitize_text_field( $settings['frontend_posting_'.$k] );
+                            if( isset( $data[$k] ) ) $field_value = sanitize_text_field( $data[$k]['value'] );
+                            update_post_meta( $post_id, $v, $field_value );
                         }
 
                         // If we are saving a WooCommerce product check if we need to add images to the gallery
