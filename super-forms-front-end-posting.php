@@ -292,6 +292,25 @@ if(!class_exists('SUPER_Frontend_Posting')) :
 
                     $post_id = $result;
 
+                    // Check if bbpress is activated
+                    if( function_exists( 'bbp_stick_topic' ) ) {
+                        if( isset( $data['_bbp_topic_type'] ) ) {
+                            $bbp_sticky = filter_var( $data['_bbp_topic_type'], FILTER_VALIDATE_BOOLEAN );
+                            if( ($bbp_sticky===false) || ($bbp_sticky===true) ) {
+                                bbp_stick_topic( $post_id, $bbp_sticky );
+                            }
+                        }
+                        // Set parent for topics only
+                        if( $postarr['post_type']==bbp_get_topic_post_type() ) {
+                            update_post_meta( $post_id, '_bbp_author_ip', bbp_current_author_ip() );
+                            if( isset( $postarr['post_parent'] ) ) {
+                                if( $postarr['post_parent']!=0 ) {
+                                    update_post_meta( $post_id, '_bbp_forum_id', $postarr['post_parent'] );
+                                }
+                            }
+                        }
+                    }
+
                     // Collect categories from the field tax_input
                     if( $tax_input!='' ) {
                         $tax_input_array = array();
@@ -595,9 +614,6 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         'values' => array(
                             'none' => __( 'None (do nothing)', 'super' ),
                             'create_post' => __( 'Create new Post', 'super' ), //(post, page, product etc.)
-                            'update_post' => __( 'Update existing Post', 'super' ),
-                            'create_taxonomy' => __( 'Create new Taxonomy', 'super' ), //(category, product_cat etc.)
-                            'update_taxonomy' => __( 'Update existing Taxonomy', 'super' ),
                         ),
                     ),
                     'frontend_posting_post_type' => array(
@@ -606,15 +622,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_post_type', $settings['settings'], 'page' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
-                        'filter_value' => 'create_post,update_post',
-                    ),
-                    'frontend_posting_taxonomy' => array(
-                        'name' => __( 'Taxonomy type', 'super' ),
-                        'desc' => __( 'Enter the name of the taxonomy (e.g: category, product_cat)', 'super' ),
-                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_taxonomy', $settings['settings'], 'category' ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'create_taxonomy,update_taxonomy',
+                        'filter_value' => 'create_post',
                     ),
                     'frontend_posting_status' => array(
                         'name' => __( 'Status', 'super' ),
@@ -868,147 +876,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         'filter' => true,
                         'parent' => 'frontend_posting_post_type',
                         'filter_value' => 'product',
-                    ),
-
-                    /*
-                    'frontend_posting_post_type' => array(
-                        'name' => __( 'Post type', 'super' ),
-                        'desc' => __( 'Select what this form should do (register or login)?', 'super' ),
-                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_action', $settings['settings'], 'none' ),
-                        'filter' => true,
-                        'type' => 'select',
-                        'values' => array(
-                            'none' => __( 'None (do nothing)', 'super' ),
-                            'create' => __( 'Create', 'super' ),
-                            'update' => __( 'Update', 'super' ),
-                        ),
-                    ),
-                    'login_user_role' => array(
-                        'name' => __( 'Allowed user role(s)', 'super' ),
-                        'desc' => __( 'Which user roles are allowed to login?', 'super' ),
-                        'type' => 'select',
-                        'multiple' => true,
-                        'default' => SUPER_Settings::get_value( 0, 'login_user_role', $settings['settings'], '' ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'login',
-                        'values' => $roles,
-                    ),
-                    'register_user_role' => array(
-                        'name' => __( 'User role', 'super' ),
-                        'desc' => __( 'What user role should this user get?', 'super' ),
-                        'type' => 'select',
-                        'default' => SUPER_Settings::get_value( 0, 'register_user_role', $settings['settings'], '' ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'register',
-                        'values' => $reg_roles,
-                    ),
-                    'frontend_posting_activation' => array(
-                        'name' => __( 'Send activation email', 'super' ),
-                        'desc' => __( 'Optionally let users activate their account or let them instantly login without verification', 'super' ),
-                        'type' => 'select',
-                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_activation', $settings['settings'], 'verify' ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'register',
-                        'values' => array(
-                            'verify' => __( 'Send activation email', ' super' ),
-                            'auto' => __( 'Auto activate and login', 'super' ),
-                        ),
-                    ),
-                    'frontend_posting_url' => array(
-                        'name' => __( 'Login page URL', 'super' ),
-                        'desc' => __( 'URL of your login page where you placed the login form, here users can activate their account', 'super' ),
-                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_url', $settings['settings'], get_site_url() . '/login/' ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'register,login,reset_password',
-                    ),
-                    'register_welcome_back_msg' => array(
-                        'name' => __( 'Welcome back message', 'super' ),
-                        'desc' => __( 'Display a welcome message after user has logged in (leave blank for no message)', 'super' ),
-                        'default' => SUPER_Settings::get_value( 0, 'register_welcome_back_msg', $settings['settings'], __( 'Welcome back {field_user_login}!', 'super' ) ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'login',
-                    ),
-                    'register_incorrect_code_msg' => array(
-                        'name' => __( 'Incorrect activation code message', 'super' ),
-                        'desc' => __( 'Display a message when the activation code is incorrect', 'super' ),
-                        'default' => SUPER_Settings::get_value( 0, 'register_incorrect_code_msg', $settings['settings'], __( 'The combination username, password and activation code is incorrect!', 'super' ) ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'login',
-                    ),
-                    'register_account_activated_msg' => array(
-                        'name' => __( 'Account activated message', 'super' ),
-                        'desc' => __( 'Display a message when account has been activated', 'super' ),
-                        'default' => SUPER_Settings::get_value( 0, 'register_account_activated_msg', $settings['settings'], __( 'Hello {field_user_login}, your account has been activated!', 'super' ) ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'login',
-                    ),
-                    'register_activation_subject' => array(
-                        'name' => __( 'Activation Email Subject', 'super' ),
-                        'desc' => __( 'Example: Activate your account', 'super' ),
-                        'default' => SUPER_Settings::get_value( 0, 'register_activation_subject', $settings['settings'], __( 'Activate your account', 'super' ) ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'register,login',
-                    ),
-                    'register_activation_email' => array(
-                        'name' => __( 'Activation Email Body', 'super' ),
-                        'desc' => __( 'The email message. You can use {activation_code} and {frontend_posting_url}', 'super' ),
-                        'type' => 'textarea',
-                        'default' => SUPER_Settings::get_value( 0, 'register_activation_email', $settings['settings'], "Dear {field_user_login},\n\nThank you for registering! Before you can login you will need to activate your account.\nBelow you will find your activation code. You need this code to activate your account:\n\nActivation Code: <strong>{register_activation_code}</strong>\n\nClick <a href=\"{frontend_posting_url}?code={register_activation_code}\">here</a> to activate your account with the provided code.\n\n\nBest regards,\n\n{option_blogname}" ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'register,login',
-                    ),                                      
-                    'frontend_posting_user_meta' => array(
-                        'name' => __( 'Save custom user meta', 'super' ),
-                        'desc' => __( 'Usefull for external plugins such as WooCommerce. Example: "field_name|meta_key" (each on a new line)', 'super' ),
-                        'type' => 'textarea',
-                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_user_meta', $settings['settings'], "first_name|billing_first_name\nlast_name|billing_last_name\naddress|billing_address" ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'register',
-                    ),
-                    'register_reset_password_success_msg' => array(
-                        'name' => __( 'Success message', 'super' ),
-                        'desc' => __( 'Display a message after user has reset their password (leave blank for no message)', 'super' ),
-                        'default' => SUPER_Settings::get_value( 0, 'register_reset_password_success_msg', $settings['settings'], __( 'Your password has been reset. We have just send you a new password to your email address.', 'super' ) ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'reset_password',
-                    ),
-                    'register_reset_password_not_exists_msg' => array(
-                        'name' => __( 'Not found message', 'super' ),
-                        'desc' => __( 'Display a message when no user was found (leave blank for no message)', 'super' ),
-                        'default' => SUPER_Settings::get_value( 0, 'register_reset_password_not_exists_msg', $settings['settings'], __( 'We couldn\'t find a user with the given email address!', 'super' ) ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'reset_password',
-                    ),
-                    'register_reset_password_subject' => array(
-                        'name' => __( 'Lost Password Email Subject', 'super' ),
-                        'desc' => __( 'Example: Your new password. You can use {user_login}', 'super' ),
-                        'default' => SUPER_Settings::get_value( 0, 'register_reset_password_subject', $settings['settings'], __( 'Your new password', 'super' ) ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'reset_password',
-                    ),
-                    'register_reset_password_email' => array(
-                        'name' => __( 'Lost Password Email Body', 'super' ),
-                        'desc' => __( 'The email message. You can use {user_login}, {register_generated_password} and {frontend_posting_url}', 'super' ),
-                        'type' => 'textarea',
-                        'default' => SUPER_Settings::get_value( 0, 'register_reset_password_email', $settings['settings'], "Dear {user_login},\n\nYou just requested to reset your password.\nUsername: <strong>{user_login}</strong>\nPassword: <strong>{register_generated_password}</strong>\n\nClick <a href=\"{frontend_posting_url}\">here</a> to login with your new password.\n\n\nBest regards,\n\n{option_blogname}" ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'reset_password',
-                    ),
-                    */
+                    )
                 )
             );
             return $array;
