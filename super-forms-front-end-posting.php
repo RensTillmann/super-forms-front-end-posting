@@ -292,21 +292,37 @@ if(!class_exists('SUPER_Frontend_Posting')) :
 
                     $post_id = $result;
 
-                    // Check if bbpress is activated
+                    // BuddyPress functions
+                    // Make Topic sticky
                     if( function_exists( 'bbp_stick_topic' ) ) {
                         if( isset( $data['_bbp_topic_type'] ) ) {
-                            $bbp_sticky = filter_var( $data['_bbp_topic_type'], FILTER_VALIDATE_BOOLEAN );
-                            if( ($bbp_sticky===false) || ($bbp_sticky===true) ) {
-                                bbp_stick_topic( $post_id, $bbp_sticky );
+                            $stickies = array( $post_id );
+                            $stickies = array_values( $stickies );
+                            if( $data['_bbp_topic_type']['value']=='super' ) {
+                                update_option( '_bbp_super_sticky_topics', $stickies );
+                            }
+                            if( $data['_bbp_topic_type']['value']=='stick' ) {
+                                update_post_meta( $postarr['post_parent'], '_bbp_sticky_topics', $stickies );
                             }
                         }
-                        // Set parent for topics only
+                    }
+                    // Set parent for topics only
+                    if( function_exists( 'bbp_get_topic_post_type' ) ) {
                         if( $postarr['post_type']==bbp_get_topic_post_type() ) {
                             update_post_meta( $post_id, '_bbp_author_ip', bbp_current_author_ip() );
                             if( isset( $postarr['post_parent'] ) ) {
                                 if( $postarr['post_parent']!=0 ) {
                                     update_post_meta( $post_id, '_bbp_forum_id', $postarr['post_parent'] );
                                 }
+                            }
+                        }
+                    }
+                    // Subscribe to the Topic
+                    if( function_exists( 'bbp_add_user_subscription' ) ) {
+                        if( isset( $data['bbp_subscribe'] ) ) {
+                            $bbp_subscribe = filter_var( $data['bbp_subscribe']['value'], FILTER_VALIDATE_BOOLEAN );
+                            if( $bbp_subscribe===true) {
+                                $result = bbp_add_user_subscription( $postarr['post_author'], $post_id );
                             }
                         }
                     }
