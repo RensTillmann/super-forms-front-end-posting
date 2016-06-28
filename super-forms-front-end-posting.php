@@ -386,13 +386,17 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                             'product_sale_price_dates_to' => '_sale_price_dates_to',
                             'product_price' => '_price',
                             
-                            
                             'product_downloadable_files' => '_downloadable_files',
                             'product_download_limit' => '_download_limit',
                             'product_download_expiry' => '_download_expiry',
                             'product_download_type' => '_download_type',
 
-
+                            'product_url' => '_product_url',
+                            'product_button_text' => '_button_text',
+                            
+                            'product_upsell_ids' => 'upsell_ids',
+                            'product_crosssell_ids' => 'crosssell_ids',
+                            
                             // Do we really need this? I don't think so, if a client requests this we will add it
                             // For now we will just comment it
                             //'product_total_sales' => 'total_sales',
