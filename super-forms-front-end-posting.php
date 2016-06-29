@@ -239,6 +239,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 $postarr['post_parent'] = absint( $settings['frontend_posting_post_parent'] );
                 $postarr['comment_status'] = sanitize_text_field( $settings['frontend_posting_comment_status'] );
                 $postarr['ping_status'] = sanitize_text_field( $settings['frontend_posting_ping_status'] );
+                $postarr['menu_order'] = absint( $settings['frontend_posting_menu_order'] );
                 $postarr['post_password'] = $settings['frontend_posting_post_password'];
                 if($settings['frontend_posting_author']!='') {
                     $postarr['post_author'] = absint( $settings['frontend_posting_author'] );
@@ -265,6 +266,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 if( isset( $data['comment_status'] ) ) $postarr['comment_status'] = sanitize_text_field( $data['comment_status']['value'] );
                 if( isset( $data['ping_status'] ) ) $postarr['ping_status'] = sanitize_text_field( $data['ping_status']['value'] );
                 if( isset( $data['post_password'] ) ) $postarr['post_password'] = $data['post_password']['value'];
+                if( isset( $data['menu_order'] ) ) $postarr['menu_order'] = $data['menu_order']['value'];
                 if( isset( $data['post_author'] ) ) $postarr['post_author'] = absint( $data['post_author']['value'] );
                 if( (isset( $data['post_date'] )) && (isset( $data['post_time'] )) ) {
                     $postarr['post_time'] = date( 'H:i:s', strtotime($data['post_time']['value'] ) ); // Must be formatted as '18:57:33';
@@ -274,6 +276,13 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     if( isset( $data['post_date'] ) ) {
                         $postarr['post_date'] = date( 'Y-m-d H:i:s', strtotime($data['post_date']['value'] ) ); // Must be formatted as '2010-02-23 18:57:33';
                     }
+                }
+                if( ($postarr['comment_status']=='1') || ($postarr['comment_status']=='yes') || ($postarr['comment_status']=='true') ) {
+                    $postarr['comment_status'] = 'open';
+                }elseif( ($postarr['comment_status']=='0') || ($postarr['comment_status']=='no') || ($postarr['comment_status']=='false') ) {
+                    $postarr['comment_status'] = 'closed';
+                }else{
+                    unset($postarr['comment_status']);
                 }
 
                 // Get the post ID or return the error(s)
@@ -359,8 +368,15 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         // Set the product type (default = simple)
                         $product_type = sanitize_text_field( $settings['frontend_posting_product_type'] );
                         if( isset( $data['product_type'] ) ) $product_type = sanitize_text_field( $data['product_type']['value'] );
-                        if($product_type=='') $product_type = 'simple';
-                        wp_set_object_terms($post_id, $product_type, 'product_type');
+                        if( $product_type=='' ) $product_type = 'simple';
+                        wp_set_object_terms( $post_id, $product_type, 'product_type' );
+
+                        // Set the shipping class (default = none)
+                        $shipping_class = 0;
+                        if( isset( $data['product_shipping_class'] ) ) $shipping_class = absint( $data['product_shipping_class']['value'] );
+                        if( $shipping_class!=0 ) {
+                            wp_set_object_terms( $post_id, absint($shipping_class), 'product_shipping_class' );
+                        }
 
                         // Save all the product meta data
                         $fields = array(
