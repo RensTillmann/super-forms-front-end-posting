@@ -134,6 +134,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 
                 // Filters since 1.0.0
                 add_filter( 'super_settings_after_smtp_server_filter', array( $this, 'add_settings' ), 10, 2 );
+                add_filter( 'super_shortcodes_after_form_elements_filter', array( $this, 'add_text_field_settings' ), 10, 2 );
 
                 // Actions since 1.0.0
 
@@ -149,6 +150,37 @@ if(!class_exists('SUPER_Frontend_Posting')) :
             }
             
         }
+
+        /**
+         * Hook into settings and add Text field settings
+         *
+         *  @since      1.0.0
+        */
+        public static function add_text_field_settings( $array, $settings ) {
+            
+            // Make sure that older Super Forms versions also have the 
+            // filter attribute set to true for the name setting field for text field element:
+            $array['form_elements']['shortcodes']['text']['atts']['general']['fields']['name']['filter'] = true;
+
+            // Now add the tag_taxonomy settings field
+            $fields_array = $array['form_elements']['shortcodes']['text']['atts']['general']['fields'];
+            $res = array_slice($fields_array, 0, 1, true);
+            $tag_taxonomy = array(
+                'tag_taxonomy' => array(
+                    'name' => __( 'The tag taxonomy name (e.g: post_tag or product_tag)', 'super' ),
+                    'desc' => __( 'Required to connect the post to categories (if found)', 'super' ),
+                    'default' => SUPER_Settings::get_value( 0, 'tag_taxonomy', $settings['settings'], '' ),
+                    'filter' => true,
+                    'parent' => 'name',
+                    'filter_value' => 'tags_input',
+                    'required' => true
+                ),
+            );
+            $res = $res + $tag_taxonomy + array_slice($fields_array, 1, count($fields_array) - 1, true);
+            $array['form_elements']['shortcodes']['text']['atts']['general']['fields'] = $res;
+            return $array;
+        }
+
 
         /**
          * Hook into before sending email and check if we need to create or update a post or taxonomy
@@ -209,19 +241,19 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     }
                 }
 
-                // Lets check if tax_input field exists
-                // If so, let's check if the post_taxonomy exists, because this is required in order to connect the categories accordingly to the post.
-                if( isset( $data['tax_input'] ) ) {
-                    if( (!isset( $settings['frontend_posting_post_tag_taxonomy'] )) || ($settings['frontend_posting_post_tag_taxonomy']=='') ) {
-                        $msg = __( 'You have a field called <strong>tag_input</strong> but you haven\'t set a valid taxonomy name. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' );
+                // Lets check if tags_input field exists
+                // If so, let's check if the tag_taxonomy exists, because this is required in order to connect the categories accordingly to the post.
+                if( isset( $data['tags_input'] ) ) {
+                    if( (!isset( $data['tag_taxonomy'] )) || ($data['tag_taxonomy']=='') ) {
+                        $msg = __( 'You have a field called <strong>tags_input</strong> but you haven\'t set a valid taxonomy name. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' );
                         SUPER_Common::output_error(
                             $error = true,
                             $msg = $msg,
                             $redirect = null
                         );
                     }else{
-                        if ( !taxonomy_exists( $settings['frontend_posting_post_tag_taxonomy'] ) ) {
-                            $msg = sprintf( __( 'The taxonomy <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' ), $settings['frontend_posting_post_tag_taxonomy'] );
+                        if ( !taxonomy_exists( $data['tag_taxonomy'] ) ) {
+                            $msg = sprintf( __( 'The taxonomy <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' ), $data['tag_taxonomy'] );
                             SUPER_Common::output_error(
                                 $error = true,
                                 $msg = $msg,
@@ -252,6 +284,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 $post_format = sanitize_text_field( $settings['frontend_posting_post_format'] );
                 $tax_input = sanitize_text_field( $settings['frontend_posting_tax_input'] );
                 $tags_input = sanitize_text_field( $settings['frontend_posting_tags_input'] );
+                $tag_taxonomy = sanitize_text_field( $settings['frontend_posting_post_tag_taxonomy'] );
 
                 // Override default values for form field values
                 $postarr['post_title'] = $data['post_title']['value'];
@@ -261,6 +294,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 if( isset( $data['post_format'] ) ) $post_format = sanitize_text_field( $data['post_format']['value'] );
                 if( isset( $data['tax_input'] ) ) $tax_input = sanitize_text_field( $data['tax_input']['value'] );
                 if( isset( $data['tags_input'] ) ) $tags_input = sanitize_text_field( $data['tags_input']['value'] );
+                if( isset( $data['tag_taxonomy'] ) ) $tag_taxonomy = sanitize_text_field( $data['tag_taxonomy']['value'] );
                 if( isset( $data['post_status'] ) ) $postarr['post_status'] = sanitize_text_field( $data['post_status']['value'] );
                 if( isset( $data['post_parent'] ) ) $postarr['post_parent'] = absint( $data['post_parent']['value'] );
                 if( isset( $data['comment_status'] ) ) $postarr['comment_status'] = sanitize_text_field( $data['comment_status']['value'] );
@@ -359,7 +393,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                                 $tags_input_array[] = $slug;
                             }
                         }
-                        wp_set_object_terms($post_id, $tags_input_array, $settings['frontend_posting_post_tag_taxonomy'] );
+                        wp_set_object_terms($post_id, $tags_input_array, $tag_taxonomy );
                     }
 
                     // Check if we are saving a WooCommerce product
