@@ -352,8 +352,8 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     // Collect tags from the field tags_input
                     if( $tags_input!='' ) {
                         $tags_input_array = array();
-                        $categories = explode( ",", $tags_input );
-                        foreach( $categories as $slug ) {
+                        $tags = explode( ",", $tags_input );
+                        foreach( $tags as $slug ) {
                             $slug = trim($slug);
                             if( !empty( $slug ) ) {
                                 $tags_input_array[] = $slug;
@@ -529,26 +529,8 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                                         update_post_meta( $post_id, '_product_attributes', $_product_attributes);
                                     } 
                                 }
-                                //var_dump($data['product_attributes']);
-                                exit;
-
-                                //product_attributes
-                                /*
-                                $files = array();
-                                $_file_paths = array();
-                                foreach( $data['product_attributes']['files'] as $v ) {
-                                    $name = get_the_title( $v['attachment'] );
-                                    $url = $v['url'];
-                                    $array = array( 'name'=>$name, 'file' => $url );
-                                    $url = md5( $url );
-                                    $_file_paths[$url] = $array;
-                                }
-                                update_post_meta( $post_id, '_downloadable_files', $_file_paths);
-                                */
                                 continue;
                             }
-
-
 
                             $field_value = '';
                             if( isset( $settings['frontend_posting_'.$k] ) ) $field_value = sanitize_text_field( $settings['frontend_posting_'.$k] );
