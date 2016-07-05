@@ -156,7 +156,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
          *
          *  @since      1.0.0
         */
-        public static function add_text_field_settings( $array, $settings ) {
+        public static function add_text_field_settings( $array, $attributes ) {
             
             // Make sure that older Super Forms versions also have the 
             // filter attribute set to true for the name setting field for text field element:
@@ -169,7 +169,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 'tag_taxonomy' => array(
                     'name' => __( 'The tag taxonomy name (e.g: post_tag or product_tag)', 'super' ),
                     'desc' => __( 'Required to connect the post to categories (if found)', 'super' ),
-                    'default' => SUPER_Settings::get_value( 0, 'tag_taxonomy', $settings['settings'], '' ),
+                    'default'=> ( !isset( $attributes['tag_taxonomy'] ) ? '' : $attributes['tag_taxonomy'] ),
                     'filter' => true,
                     'parent' => 'name',
                     'filter_value' => 'tags_input',
@@ -179,6 +179,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
             $res = $res + $tag_taxonomy + array_slice($fields_array, 1, count($fields_array) - 1, true);
             $array['form_elements']['shortcodes']['text']['atts']['general']['fields'] = $res;
             return $array;
+
         }
 
 
@@ -232,28 +233,6 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     }else{
                         if ( !taxonomy_exists( $settings['frontend_posting_post_cat_taxonomy'] ) ) {
                             $msg = sprintf( __( 'The taxonomy <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' ), $settings['frontend_posting_post_cat_taxonomy'] );
-                            SUPER_Common::output_error(
-                                $error = true,
-                                $msg = $msg,
-                                $redirect = null
-                            );
-                        }
-                    }
-                }
-
-                // Lets check if tags_input field exists
-                // If so, let's check if the tag_taxonomy exists, because this is required in order to connect the categories accordingly to the post.
-                if( isset( $data['tags_input'] ) ) {
-                    if( (!isset( $data['tag_taxonomy'] )) || ($data['tag_taxonomy']=='') ) {
-                        $msg = __( 'You have a field called <strong>tags_input</strong> but you haven\'t set a valid taxonomy name. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' );
-                        SUPER_Common::output_error(
-                            $error = true,
-                            $msg = $msg,
-                            $redirect = null
-                        );
-                    }else{
-                        if ( !taxonomy_exists( $data['tag_taxonomy'] ) ) {
-                            $msg = sprintf( __( 'The taxonomy <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' ), $data['tag_taxonomy'] );
                             SUPER_Common::output_error(
                                 $error = true,
                                 $msg = $msg,
@@ -318,6 +297,30 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 }else{
                     unset($postarr['comment_status']);
                 }
+
+
+                // Lets check if tags_input field exists
+                // If so, let's check if the tag_taxonomy exists, because this is required in order to connect the categories accordingly to the post.
+                if( $tags_input!='' ) {
+                    if( $tag_taxonomy=='' ) {
+                        $msg = __( 'You have a field called <strong>tags_input</strong> but you haven\'t set a valid taxonomy name. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' );
+                        SUPER_Common::output_error(
+                            $error = true,
+                            $msg = $msg,
+                            $redirect = null
+                        );
+                    }else{
+                        if ( !taxonomy_exists( $tag_taxonomy ) ) {
+                            $msg = sprintf( __( 'The taxonomy <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' ), $tag_taxonomy );
+                            SUPER_Common::output_error(
+                                $error = true,
+                                $msg = $msg,
+                                $redirect = null
+                            );
+                        }
+                    }
+                }
+
 
                 // Get the post ID or return the error(s)
                 $result = wp_insert_post( $postarr, true );
@@ -582,8 +585,65 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                             update_post_meta( $post_id, '_product_image_gallery', $files );
                         }
 
-                    }
+                        // Sales and prices
+                        if ( in_array( $product_type, array( 'variable', 'grouped' ) ) ) {
+                            // Variable and grouped products have no prices
+                            update_post_meta( $post_id, '_regular_price', '' );
+                            update_post_meta( $post_id, '_sale_price', '' );
+                            update_post_meta( $post_id, '_sale_price_dates_from', '' );
+                            update_post_meta( $post_id, '_sale_price_dates_to', '' );
+                            update_post_meta( $post_id, '_price', '' );
+                        }else{
+                            // Regular Price
+                            if ( isset( $data['product_regular_price'] ) ) {
+                                $regular_price = ( '' === $data['product_regular_price']['value'] ) ? '' : wc_format_decimal( $data['product_regular_price']['value'] );
+                                update_post_meta( $post_id, '_regular_price', $regular_price );
+                            } else {
+                                $regular_price = get_post_meta( $post_id, '_regular_price', true );
+                            }
 
+                            // Sale Price
+                            if ( isset( $data['product_sale_price'] ) ) {
+                                $sale_price = ( '' === $data['product_sale_price']['value'] ) ? '' : wc_format_decimal( $data['product_sale_price']['value'] );
+                                update_post_meta( $post_id, '_sale_price', $sale_price );
+                            } else {
+                                $sale_price = get_post_meta( $post_id, '_sale_price', true );
+                            }
+                            $date_from = isset( $data['product_sale_price_dates_from'] ) ? strtotime( $data['product_sale_price_dates_from']['value'] ) : get_post_meta( $post_id, '_sale_price_dates_from', true );
+                            $date_to   = isset( $data['product_sale_price_dates_to'] ) ? strtotime( $data['product_sale_price_dates_to']['value'] ) : get_post_meta( $post_id, '_sale_price_dates_to', true );
+
+                            // Dates
+                            if ( $date_from ) {
+                                update_post_meta( $post_id, '_sale_price_dates_from', $date_from );
+                            } else {
+                                update_post_meta( $post_id, '_sale_price_dates_from', '' );
+                            }
+                            if ( $date_to ) {
+                                update_post_meta( $post_id, '_sale_price_dates_to', $date_to );
+                            } else {
+                                update_post_meta( $post_id, '_sale_price_dates_to', '' );
+                            }
+                            if ( $date_to && ! $date_from ) {
+                                $date_from = strtotime( 'NOW', current_time( 'timestamp' ) );
+                                update_post_meta( $post_id, '_sale_price_dates_from', $date_from );
+                            }
+
+                            // Update price if on sale
+                            if ( '' !== $sale_price && '' == $date_to && '' == $date_from ) {
+                                update_post_meta( $post_id, '_price', wc_format_decimal( $sale_price ) );
+                            } else {
+                                update_post_meta( $post_id, '_price', $regular_price );
+                            }
+                            if ( '' !== $sale_price && $date_from && $date_from <= strtotime( 'NOW', current_time( 'timestamp' ) ) ) {
+                                update_post_meta( $post_id, '_price', wc_format_decimal( $sale_price ) );
+                            }
+                            if ( $date_to && $date_to < strtotime( 'NOW', current_time( 'timestamp' ) ) ) {
+                                update_post_meta( $post_id, '_price', $regular_price );
+                                update_post_meta( $post_id, '_sale_price_dates_from', '' );
+                                update_post_meta( $post_id, '_sale_price_dates_to', '' );
+                            }
+                        }
+                    }
 
                     // Save custom post meta
                     $meta_data = array();
