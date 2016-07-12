@@ -338,6 +338,14 @@ if(!class_exists('SUPER_Frontend_Posting')) :
 
                     $post_id = $result;
 
+                    // Check if we need to make this post sticky
+                    if( isset( $data['stick_post'] ) ) {
+                        $sticky = sanitize_text_field( $data['stick_post']['value'] );
+                        if( ($sticky=='1') || ($sticky=='true') || ($sticky=='yes') ) {
+                            stick_post($post_id);
+                        }
+                    }
+
                     // BuddyPress functions
                     // Make Topic sticky
                     if( function_exists( 'bbp_stick_topic' ) ) {
@@ -674,25 +682,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     }
 
                 }
-                exit;
-
             }
-            
-            // Update an existing post
-            if( $settings['frontend_posting_action']=='update_post' ) {
-
-            }
-            
-            // Create a new taxonomy
-            if( $settings['frontend_posting_action']=='create_taxonomy' ) {
-
-            }            
-            
-            // Update an existing taxonomy
-            if( $settings['frontend_posting_action']=='update_taxonomy' ) {
-
-            }
-
         }
 
 
