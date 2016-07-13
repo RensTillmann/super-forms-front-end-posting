@@ -162,21 +162,31 @@ if(!class_exists('SUPER_Frontend_Posting')) :
             // filter attribute set to true for the name setting field for text field element:
             $array['form_elements']['shortcodes']['text']['atts']['general']['fields']['name']['filter'] = true;
 
-            // Now add the tag_taxonomy settings field
+            // Now add the taxonomy settings field
             $fields_array = $array['form_elements']['shortcodes']['text']['atts']['general']['fields'];
             $res = array_slice($fields_array, 0, 1, true);
-            $tag_taxonomy = array(
-                'tag_taxonomy' => array(
-                    'name' => __( 'The tag taxonomy name (e.g: post_tag or product_tag)', 'super' ),
-                    'desc' => __( 'Required to connect the post to categories (if found)', 'super' ),
-                    'default'=> ( !isset( $attributes['tag_taxonomy'] ) ? '' : $attributes['tag_taxonomy'] ),
-                    'filter' => true,
-                    'parent' => 'name',
-                    'filter_value' => 'tags_input',
-                    'required' => true
-                ),
+            $taxonomy['tag_taxonomy'] = array(
+                'name' => __( 'The tag taxonomy name (e.g: post_tag or product_tag)', 'super' ),
+                'desc' => __( 'Required to connect the post to tags (if found)', 'super' ),
+                'default'=> ( !isset( $attributes['tag_taxonomy'] ) ? '' : $attributes['tag_taxonomy'] ),
+                'filter' => true,
+                'parent' => 'name',
+                'filter_value' => 'tags_input',
+                'required' => true
             );
-            $res = $res + $tag_taxonomy + array_slice($fields_array, 1, count($fields_array) - 1, true);
+            $taxonomy['cat_taxonomy'] = array(
+                'name' => __( 'The cat taxonomy name (e.g: post_tag or product_tag)', 'super' ),
+                'desc' => __( 'Required to connect the post to categories (if found)', 'super' ),
+                'default'=> ( !isset( $attributes['cat_taxonomy'] ) ? '' : $attributes['cat_taxonomy'] ),
+                'filter' => true,
+                'parent' => 'name',
+                'filter_value' => 'tags_input',
+                'required' => true
+            );
+            $res = $res + $taxonomy + array_slice($fields_array, 1, count($fields_array) - 1, true);
+
+
+
             $array['form_elements']['shortcodes']['text']['atts']['general']['fields'] = $res;
             return $array;
 
@@ -220,28 +230,6 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     );
                 }
 
-                // Lets check if tax_input field exists
-                // If so, let's check if the post_taxonomy exists, because this is required in order to connect the categories accordingly to the post.
-                if( isset( $data['tax_input'] ) ) {
-                    if( (!isset( $settings['frontend_posting_post_cat_taxonomy'] )) || ($settings['frontend_posting_post_cat_taxonomy']=='') ) {
-                        $msg = __( 'You have a field called <strong>tax_input</strong> but you haven\'t set a valid taxonomy name. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' );
-                        SUPER_Common::output_error(
-                            $error = true,
-                            $msg = $msg,
-                            $redirect = null
-                        );
-                    }else{
-                        if ( !taxonomy_exists( $settings['frontend_posting_post_cat_taxonomy'] ) ) {
-                            $msg = sprintf( __( 'The taxonomy <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' ), $settings['frontend_posting_post_cat_taxonomy'] );
-                            SUPER_Common::output_error(
-                                $error = true,
-                                $msg = $msg,
-                                $redirect = null
-                            );
-                        }
-                    }
-                }
-
                 $postarr = array();
                 
                 // Default values from the form settings
@@ -264,6 +252,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 $tax_input = sanitize_text_field( $settings['frontend_posting_tax_input'] );
                 $tags_input = sanitize_text_field( $settings['frontend_posting_tags_input'] );
                 $tag_taxonomy = sanitize_text_field( $settings['frontend_posting_post_tag_taxonomy'] );
+                $cat_taxonomy = sanitize_text_field( $settings['frontend_posting_post_cat_taxonomy'] );
 
                 // Override default values for form field values
                 $postarr['post_title'] = $data['post_title']['value'];
@@ -274,6 +263,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 if( isset( $data['tax_input'] ) ) $tax_input = sanitize_text_field( $data['tax_input']['value'] );
                 if( isset( $data['tags_input'] ) ) $tags_input = sanitize_text_field( $data['tags_input']['value'] );
                 if( isset( $data['tag_taxonomy'] ) ) $tag_taxonomy = sanitize_text_field( $data['tag_taxonomy']['value'] );
+                if( isset( $data['cat_taxonomy'] ) ) $cat_taxonomy = sanitize_text_field( $data['cat_taxonomy']['value'] );
                 if( isset( $data['post_status'] ) ) $postarr['post_status'] = sanitize_text_field( $data['post_status']['value'] );
                 if( isset( $data['post_parent'] ) ) $postarr['post_parent'] = absint( $data['post_parent']['value'] );
                 if( isset( $data['comment_status'] ) ) $postarr['comment_status'] = sanitize_text_field( $data['comment_status']['value'] );
@@ -290,14 +280,35 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         $postarr['post_date'] = date( 'Y-m-d H:i:s', strtotime($data['post_date']['value'] ) ); // Must be formatted as '2010-02-23 18:57:33';
                     }
                 }
-                if( ($postarr['comment_status']=='1') || ($postarr['comment_status']=='yes') || ($postarr['comment_status']=='true') ) {
+                if( ($postarr['comment_status']=='open') || ($postarr['comment_status']=='1') || ($postarr['comment_status']=='yes') || ($postarr['comment_status']=='true') ) {
                     $postarr['comment_status'] = 'open';
-                }elseif( ($postarr['comment_status']=='0') || ($postarr['comment_status']=='no') || ($postarr['comment_status']=='false') ) {
+                }elseif( ($postarr['comment_status']=='closed') || ($postarr['comment_status']=='0') || ($postarr['comment_status']=='no') || ($postarr['comment_status']=='false') ) {
                     $postarr['comment_status'] = 'closed';
                 }else{
                     unset($postarr['comment_status']);
                 }
 
+                // Lets check if tax_input field exists
+                // If so, let's check if the post_taxonomy exists, because this is required in order to connect the categories accordingly to the post.
+                if( $tax_input!='' ) {
+                    if( $cat_taxonomy=='' ) {
+                        $msg = __( 'You have a field called <strong>tax_input</strong> but you haven\'t set a valid taxonomy name. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' );
+                        SUPER_Common::output_error(
+                            $error = true,
+                            $msg = $msg,
+                            $redirect = null
+                        );
+                    }else{
+                        if ( !taxonomy_exists( $cat_taxonomy ) ) {
+                            $msg = sprintf( __( 'The taxonomy <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' ), $settings['frontend_posting_post_cat_taxonomy'] );
+                            SUPER_Common::output_error(
+                                $error = true,
+                                $msg = $msg,
+                                $redirect = null
+                            );
+                        }
+                    }
+                }
 
                 // Lets check if tags_input field exists
                 // If so, let's check if the tag_taxonomy exists, because this is required in order to connect the categories accordingly to the post.
@@ -320,7 +331,6 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         }
                     }
                 }
-
 
                 // Get the post ID or return the error(s)
                 $result = wp_insert_post( $postarr, true );
@@ -391,7 +401,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                                 $tax_input_array[] = $slug;
                             }
                         }
-                        wp_set_object_terms($post_id, $tax_input_array, $settings['frontend_posting_post_cat_taxonomy'] );
+                        wp_set_object_terms($post_id, $tax_input_array, $cat_taxonomy );
                     }
 
                     // Collect tags from the field tags_input
@@ -829,14 +839,6 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
-                    'frontend_posting_post_tag_taxonomy' => array(
-                        'name' => __( 'The tag taxonomy name (e.g: post_tag or product_tag)', 'super' ),
-                        'desc' => __( 'Required to connect the post to categories (if found)', 'super' ),
-                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_post_tag_taxonomy', $settings['settings'], '' ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'create_post',
-                    ),
                     'frontend_posting_tags_input' => array(
                         'name' => __( 'The post tags', 'super' ),
                         'desc' => __( 'Post tags separated by comma', 'super' ),
@@ -845,8 +847,16 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
+                    'frontend_posting_post_tag_taxonomy' => array(
+                        'name' => __( 'The tag taxonomy name (e.g: post_tag or product_tag)', 'super' ),
+                        'desc' => __( 'Required to connect the post to categories (if found)', 'super' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_post_tag_taxonomy', $settings['settings'], '' ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_action',
+                        'filter_value' => 'create_post',
+                    ),
                     'frontend_posting_post_format' => array(
-                        'name' => __( 'The post format (e.g: quote, gallery, audio etc.', 'super' ),
+                        'name' => __( 'The post format (e.g: quote, gallery, audio etc.)', 'super' ),
                         'desc' => __( 'Leave blank for no post format', 'super' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_post_format', $settings['settings'], '' ),
                         'filter' => true,
