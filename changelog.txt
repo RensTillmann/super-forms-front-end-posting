@@ -1,2 +1,5 @@
-July 13, 2016 - Version 1.0.0
+July 25, 2016 - Version 1.0.1
+- Fix: When saving contact entry is being disabled data is not being retrieved to save a post
+
+July 15, 2016 - Version 1.0.0
 - Initial release!
