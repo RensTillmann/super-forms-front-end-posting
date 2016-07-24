@@ -199,9 +199,17 @@ if(!class_exists('SUPER_Frontend_Posting')) :
         */
         public static function before_email_success_msg( $atts ) {
 
-            $data = $atts['data'];
             $settings = $atts['settings'];
-            
+            if( isset( $atts['data'] ) ) {
+                $data = $atts['data'];
+            }else{
+                if( $settings['save_contact_entry']=='yes' ) {
+                    $data = get_post_meta( $atts['entry_id'], '_super_contact_entry_data', true );
+                }else{
+                    $data = $atts['post']['data'];
+                }
+            }
+
             if( !isset( $settings['frontend_posting_action'] ) ) return true;
             if( $settings['frontend_posting_action']=='none' ) return true;
 
