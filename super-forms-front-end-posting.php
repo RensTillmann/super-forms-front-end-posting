@@ -400,7 +400,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                                 $tax_input_array[] = $slug;
                             }
                         }
-                        wp_set_object_terms($post_id, $tax_input_array, $cat_taxonomy );
+                        wp_set_object_terms( $post_id, $tax_input_array, $cat_taxonomy );
                     }
 
                     // Collect tags from the field tags_input
