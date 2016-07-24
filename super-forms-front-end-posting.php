@@ -199,7 +199,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
         */
         public static function before_email_success_msg( $atts ) {
 
-            $data = $atts['post']['data'];
+            $data = $atts['data'];
             $settings = $atts['settings'];
             
             if( !isset( $settings['frontend_posting_action'] ) ) return true;
