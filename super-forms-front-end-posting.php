@@ -339,6 +339,9 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     }
                 }
 
+                // @since 1.0.1
+                $postarr = apply_filters( 'super_front_end_posting_before_insert_post_filter', $postarr );
+
                 // Get the post ID or return the error(s)
                 $result = wp_insert_post( $postarr, true );
                 if( isset( $result->errors ) ) {
@@ -697,6 +700,10 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     if( isset( $data['featured_image'] ) ) {
                         set_post_thumbnail( $post_id, $data['featured_image']['files'][0]['attachment'] );
                     }
+
+                    // @since 1.0.1
+                    do_action( 'super_front_end_posting_after_insert_post_action', array( 'post_id'=>$post_id, 'data'=>$data, 'atts'=>$atts ) );
+
 
                 }
             }

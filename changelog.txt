@@ -1,5 +1,7 @@
 July 25, 2016 - Version 1.0.1
 - Fix: When saving contact entry is being disabled data is not being retrieved to save a post
+- Added: Filter Hook (super_front_end_posting_before_insert_post_filter)
+- Added: Action Hook (super_front_end_posting_after_insert_post_action)
 
 July 15, 2016 - Version 1.0.0
 - Initial release!
