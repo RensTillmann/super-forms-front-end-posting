@@ -11,7 +11,7 @@
  * Plugin Name: Super Forms Front-end Posting
  * Plugin URI:  http://codecanyon.net/item/super-forms-drag-drop-form-builder/13979866
  * Description: Let visitors create posts from your front-end website
- * Version:     1.0.1
+ * Version:     1.0.2
  * Author:      feeling4design
  * Author URI:  http://codecanyon.net/user/feeling4design
 */
@@ -36,7 +36,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
          *
          *	@since		1.0.0
         */
-        public $version = '1.0.1';
+        public $version = '1.0.2';
 
         
         /**
@@ -716,17 +716,6 @@ if(!class_exists('SUPER_Frontend_Posting')) :
          *  @since      1.0.0
         */
         public static function add_settings( $array, $settings ) {
-            global $wp_roles;
-            $all_roles = $wp_roles->roles;
-            $editable_roles = apply_filters( 'editable_roles', $all_roles );
-            $roles = array(
-                '' => __( 'All user roles', 'super' )
-            );
-            foreach( $editable_roles as $k => $v ) {
-                $roles[$k] = $v['name'];
-            }
-            $reg_roles = $roles;
-            unset($reg_roles['']);
             $array['frontend_posting'] = array(        
                 'name' => __( 'Front-end Posting', 'super' ),
                 'label' => __( 'Front-end Posting Settings', 'super' ),
