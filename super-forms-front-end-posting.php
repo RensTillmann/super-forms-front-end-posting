@@ -165,8 +165,8 @@ if(!class_exists('SUPER_Frontend_Posting')) :
             $fields_array = $array['form_elements']['shortcodes']['text']['atts']['general']['fields'];
             $res = array_slice($fields_array, 0, 1, true);
             $taxonomy['tag_taxonomy'] = array(
-                'name' => __( 'The tag taxonomy name (e.g: post_tag or product_tag)', 'super' ),
-                'desc' => __( 'Required to connect the post to tags (if found)', 'super' ),
+                'name' => __( 'The tag taxonomy name (e.g: post_tag or product_tag)', 'super-forms' ),
+                'desc' => __( 'Required to connect the post to tags (if found)', 'super-forms' ),
                 'default'=> ( !isset( $attributes['tag_taxonomy'] ) ? '' : $attributes['tag_taxonomy'] ),
                 'filter' => true,
                 'parent' => 'name',
@@ -174,8 +174,8 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 'required' => true
             );
             $taxonomy['cat_taxonomy'] = array(
-                'name' => __( 'The cat taxonomy name (e.g: post_tag or product_tag)', 'super' ),
-                'desc' => __( 'Required to connect the post to categories (if found)', 'super' ),
+                'name' => __( 'The cat taxonomy name (e.g: post_tag or product_tag)', 'super-forms' ),
+                'desc' => __( 'Required to connect the post to categories (if found)', 'super-forms' ),
                 'default'=> ( !isset( $attributes['cat_taxonomy'] ) ? '' : $attributes['cat_taxonomy'] ),
                 'filter' => true,
                 'parent' => 'name',
@@ -218,7 +218,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 
                 // post_title and post_content are required so let's check if these are both set
                 if( !isset( $data['post_title'] ) ) {
-                    $msg = __( 'We couldn\'t find the <strong>post_title</strong> field which is required in order to create a new post. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again', 'super' );
+                    $msg = __( 'We couldn\'t find the <strong>post_title</strong> field which is required in order to create a new post. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again', 'super-forms' );
                     SUPER_Common::output_error(
                         $error = true,
                         $msg = $msg,
@@ -229,7 +229,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 // Lets check if post type exists
                 if( $settings['frontend_posting_post_type']=='' ) $settings['frontend_posting_post_type'] = 'page';
                 if ( !post_type_exists( $settings['frontend_posting_post_type'] ) ) {
-                    $msg = sprintf( __( 'The post type <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' ), $settings['frontend_posting_post_type'] );
+                    $msg = sprintf( __( 'The post type <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super-forms' ), $settings['frontend_posting_post_type'] );
                     SUPER_Common::output_error(
                         $error = true,
                         $msg = $msg,
@@ -299,7 +299,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 // If so, let's check if the post_taxonomy exists, because this is required in order to connect the categories accordingly to the post.
                 if( $tax_input!='' ) {
                     if( $cat_taxonomy=='' ) {
-                        $msg = __( 'You have a field called <strong>tax_input</strong> but you haven\'t set a valid taxonomy name. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' );
+                        $msg = __( 'You have a field called <strong>tax_input</strong> but you haven\'t set a valid taxonomy name. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super-forms' );
                         SUPER_Common::output_error(
                             $error = true,
                             $msg = $msg,
@@ -307,7 +307,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         );
                     }else{
                         if ( !taxonomy_exists( $cat_taxonomy ) ) {
-                            $msg = sprintf( __( 'The taxonomy <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' ), $settings['frontend_posting_post_cat_taxonomy'] );
+                            $msg = sprintf( __( 'The taxonomy <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super-forms' ), $settings['frontend_posting_post_cat_taxonomy'] );
                             SUPER_Common::output_error(
                                 $error = true,
                                 $msg = $msg,
@@ -321,7 +321,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 // If so, let's check if the tag_taxonomy exists, because this is required in order to connect the categories accordingly to the post.
                 if( $tags_input!='' ) {
                     if( $tag_taxonomy=='' ) {
-                        $msg = __( 'You have a field called <strong>tags_input</strong> but you haven\'t set a valid taxonomy name. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' );
+                        $msg = __( 'You have a field called <strong>tags_input</strong> but you haven\'t set a valid taxonomy name. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super-forms' );
                         SUPER_Common::output_error(
                             $error = true,
                             $msg = $msg,
@@ -329,7 +329,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         );
                     }else{
                         if ( !taxonomy_exists( $tag_taxonomy ) ) {
-                            $msg = sprintf( __( 'The taxonomy <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super' ), $tag_taxonomy );
+                            $msg = sprintf( __( 'The taxonomy <strong>%s</strong> doesn\'t seem to exist. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again ', 'super-forms' ), $tag_taxonomy );
                             SUPER_Common::output_error(
                                 $error = true,
                                 $msg = $msg,
@@ -717,101 +717,101 @@ if(!class_exists('SUPER_Frontend_Posting')) :
         */
         public static function add_settings( $array, $settings ) {
             $array['frontend_posting'] = array(        
-                'name' => __( 'Front-end Posting', 'super' ),
-                'label' => __( 'Front-end Posting Settings', 'super' ),
+                'name' => __( 'Front-end Posting', 'super-forms' ),
+                'label' => __( 'Front-end Posting Settings', 'super-forms' ),
                 'fields' => array(
                     'frontend_posting_action' => array(
-                        'name' => __( 'Actions', 'super' ),
-                        'desc' => __( 'Select what this form should do (register or login)?', 'super' ),
+                        'name' => __( 'Actions', 'super-forms' ),
+                        'desc' => __( 'Select what this form should do (register or login)?', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_action', $settings['settings'], 'none' ),
                         'filter' => true,
                         'type' => 'select',
                         'values' => array(
-                            'none' => __( 'None (do nothing)', 'super' ),
-                            'create_post' => __( 'Create new Post', 'super' ), //(post, page, product etc.)
+                            'none' => __( 'None (do nothing)', 'super-forms' ),
+                            'create_post' => __( 'Create new Post', 'super-forms' ), //(post, page, product etc.)
                         ),
                     ),
                     'frontend_posting_post_type' => array(
-                        'name' => __( 'Post type', 'super' ),
-                        'desc' => __( 'Enter the name of the post type (e.g: post, page, product)', 'super' ),
+                        'name' => __( 'Post type', 'super-forms' ),
+                        'desc' => __( 'Enter the name of the post type (e.g: post, page, product)', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_post_type', $settings['settings'], 'page' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_status' => array(
-                        'name' => __( 'Status', 'super' ),
-                        'desc' => __( 'Select what the status should be (publish, future, draft, pending, private, trash, auto-draft)?', 'super' ),
+                        'name' => __( 'Status', 'super-forms' ),
+                        'desc' => __( 'Select what the status should be (publish, future, draft, pending, private, trash, auto-draft)?', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_status', $settings['settings'], 'publish' ),
                         'type' => 'select',
                         'values' => array(
-                            'publish' => __( 'Publish (default)', 'super' ),
-                            'future' => __( 'Future', 'super' ),
-                            'draft' => __( 'Draft', 'super' ),
-                            'pending' => __( 'Pending', 'super' ),
-                            'private' => __( 'Private', 'super' ),
-                            'trash' => __( 'Trash', 'super' ),
-                            'auto-draft' => __( 'Auto-Draft', 'super' ),
+                            'publish' => __( 'Publish (default)', 'super-forms' ),
+                            'future' => __( 'Future', 'super-forms' ),
+                            'draft' => __( 'Draft', 'super-forms' ),
+                            'pending' => __( 'Pending', 'super-forms' ),
+                            'private' => __( 'Private', 'super-forms' ),
+                            'trash' => __( 'Trash', 'super-forms' ),
+                            'auto-draft' => __( 'Auto-Draft', 'super-forms' ),
                         ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_post_parent' => array(
-                        'name' => __( 'Parent ID (leave blank for none)', 'super' ),
-                        'desc' => __( 'Enter a parent ID if you want the post to have a parent', 'super' ),
+                        'name' => __( 'Parent ID (leave blank for none)', 'super-forms' ),
+                        'desc' => __( 'Enter a parent ID if you want the post to have a parent', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_post_parent', $settings['settings'], '' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_comment_status' => array(
-                        'name' => __( 'Allow comments', 'super' ),
-                        'desc' => __( 'Whether the post can accept comments', 'super' ),
+                        'name' => __( 'Allow comments', 'super-forms' ),
+                        'desc' => __( 'Whether the post can accept comments', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_comment_status', $settings['settings'], '' ),
                         'type' => 'select',
                         'values' => array(
-                            '' => __( 'Default (use the default_comment_status option)', 'super' ),
-                            'open' => __( 'Open (allow comments)', 'super' ),
-                            'closed' => __( 'Closed (disallow comments)', 'super' ),
+                            '' => __( 'Default (use the default_comment_status option)', 'super-forms' ),
+                            'open' => __( 'Open (allow comments)', 'super-forms' ),
+                            'closed' => __( 'Closed (disallow comments)', 'super-forms' ),
                         ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_ping_status' => array(
-                        'name' => __( 'Allow pings', 'super' ),
-                        'desc' => __( 'Whether the post can accept pings', 'super' ),
+                        'name' => __( 'Allow pings', 'super-forms' ),
+                        'desc' => __( 'Whether the post can accept pings', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_ping_status', $settings['settings'], '' ),
                         'type' => 'select',
                         'values' => array(
-                            '' => __( 'Default (use the default_ping_status option)', 'super' ),
-                            'open' => __( 'Open (allow pings)', 'super' ),
-                            'closed' => __( 'Closed (disallow pings)', 'super' ),
+                            '' => __( 'Default (use the default_ping_status option)', 'super-forms' ),
+                            'open' => __( 'Open (allow pings)', 'super-forms' ),
+                            'closed' => __( 'Closed (disallow pings)', 'super-forms' ),
                         ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_post_password' => array(
-                        'name' => __( 'Password protect (leave blank for none)', 'super' ),
-                        'desc' => __( 'The password to access the post', 'super' ),
+                        'name' => __( 'Password protect (leave blank for none)', 'super-forms' ),
+                        'desc' => __( 'The password to access the post', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_post_password', $settings['settings'], '' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_menu_order' => array(
-                        'name' => __( 'Menu order (blank = 0)', 'super' ),
-                        'desc' => __( 'The order the post should be displayed in', 'super' ),
+                        'name' => __( 'Menu order (blank = 0)', 'super-forms' ),
+                        'desc' => __( 'The order the post should be displayed in', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_menu_order', $settings['settings'], '' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_meta' => array(
-                        'name' => __( 'Save custom post meta', 'super' ),
-                        'desc' => __( 'Based on your form fields you can save custom meta for your post', 'super' ),
+                        'name' => __( 'Save custom post meta', 'super-forms' ),
+                        'desc' => __( 'Based on your form fields you can save custom meta for your post', 'super-forms' ),
                         'type' => 'textarea',
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_meta', $settings['settings'], "field_name|meta_key\nfield_name2|meta_key2\nfield_name3|meta_key3" ),
                         'filter' => true,
@@ -819,107 +819,107 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_author' => array(
-                        'name' => __( 'Author ID (default = current user ID if logged in)', 'super' ),
-                        'desc' => __( 'The ID of the user where the post will belong to', 'super' ),
+                        'name' => __( 'Author ID (default = current user ID if logged in)', 'super-forms' ),
+                        'desc' => __( 'The ID of the user where the post will belong to', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_author', $settings['settings'], '' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_post_cat_taxonomy' => array(
-                        'name' => __( 'The cat taxonomy name (e.g: category or product_cat)', 'super' ),
-                        'desc' => __( 'Required to connect the post to categories (if found)', 'super' ),
+                        'name' => __( 'The cat taxonomy name (e.g: category or product_cat)', 'super-forms' ),
+                        'desc' => __( 'Required to connect the post to categories (if found)', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_post_cat_taxonomy', $settings['settings'], '' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_tax_input' => array(
-                        'name' => __( 'The post categories slug(s) (e.g: books, cars)', 'super' ),
-                        'desc' => __( 'Category slug separated by comma', 'super' ),
+                        'name' => __( 'The post categories slug(s) (e.g: books, cars)', 'super-forms' ),
+                        'desc' => __( 'Category slug separated by comma', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_tax_input', $settings['settings'], '' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_tags_input' => array(
-                        'name' => __( 'The post tags', 'super' ),
-                        'desc' => __( 'Post tags separated by comma', 'super' ),
+                        'name' => __( 'The post tags', 'super-forms' ),
+                        'desc' => __( 'Post tags separated by comma', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_tags_input', $settings['settings'], '' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_post_tag_taxonomy' => array(
-                        'name' => __( 'The tag taxonomy name (e.g: post_tag or product_tag)', 'super' ),
-                        'desc' => __( 'Required to connect the post to categories (if found)', 'super' ),
+                        'name' => __( 'The tag taxonomy name (e.g: post_tag or product_tag)', 'super-forms' ),
+                        'desc' => __( 'Required to connect the post to categories (if found)', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_post_tag_taxonomy', $settings['settings'], '' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_post_format' => array(
-                        'name' => __( 'The post format (e.g: quote, gallery, audio etc.)', 'super' ),
-                        'desc' => __( 'Leave blank for no post format', 'super' ),
+                        'name' => __( 'The post format (e.g: quote, gallery, audio etc.)', 'super-forms' ),
+                        'desc' => __( 'Leave blank for no post format', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_post_format', $settings['settings'], '' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_guid' => array(
-                        'name' => __( 'GUID', 'super' ),
-                        'desc' => __( 'Global Unique ID for referencing the post', 'super' ),
+                        'name' => __( 'GUID', 'super-forms' ),
+                        'desc' => __( 'Global Unique ID for referencing the post', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_guid', $settings['settings'], '' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
                     ),
                     'frontend_posting_product_type' => array(
-                        'name' => __( 'Product Type (e.g: simple, grouped, external, variable)', 'super' ),
-                        'desc' => __( 'Leave blank to use the default product type: simple', 'super' ),
+                        'name' => __( 'Product Type (e.g: simple, grouped, external, variable)', 'super-forms' ),
+                        'desc' => __( 'Leave blank to use the default product type: simple', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_type', $settings['settings'], '' ),
                         'filter' => true,
                         'parent' => 'frontend_posting_post_type',
                         'filter_value' => 'product',
                     ),
                     'frontend_posting_product_featured' => array(
-                        'name' => __( 'Featured product', 'super' ),
+                        'name' => __( 'Featured product', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_featured', $settings['settings'], 'no' ),
                         'type' => 'select',
                         'values' => array(
-                            'no' => __( 'No (default)', 'super' ),
-                            'yes' => __( 'Yes', 'super' ),
+                            'no' => __( 'No (default)', 'super-forms' ),
+                            'yes' => __( 'Yes', 'super-forms' ),
                         ),
                         'filter' => true,
                         'parent' => 'frontend_posting_post_type',
                         'filter_value' => 'product',
                     ),
                     'frontend_posting_product_stock_status' => array(
-                        'name' => __( 'In stock?', 'super' ),
+                        'name' => __( 'In stock?', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_stock_status', $settings['settings'], 'yes' ),
                         'type' => 'select',
                         'values' => array(
-                            'instock' => __( 'In stock (default)', 'super' ),
-                            'outofstock' => __( 'Out of stock', 'super' ),
+                            'instock' => __( 'In stock (default)', 'super-forms' ),
+                            'outofstock' => __( 'Out of stock', 'super-forms' ),
                         ),
                         'filter' => true,
                         'parent' => 'frontend_posting_post_type',
                         'filter_value' => 'product',
                     ),
                     'frontend_posting_product_manage_stock' => array(
-                        'name' => __( 'Manage stock?', 'super' ),
+                        'name' => __( 'Manage stock?', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_manage_stock', $settings['settings'], 'no' ),
                         'type' => 'select',
                         'values' => array(
-                            'no' => __( 'No (default)', 'super' ),
-                            'yes' => __( 'Yes', 'super' ),
+                            'no' => __( 'No (default)', 'super-forms' ),
+                            'yes' => __( 'Yes', 'super-forms' ),
                         ),
                         'filter' => true,
                         'parent' => 'frontend_posting_post_type',
                         'filter_value' => 'product',
                     ),
                     'frontend_posting_product_stock' => array(
-                        'name' => __( 'Stock Qty', 'super' ),
+                        'name' => __( 'Stock Qty', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_stock', $settings['settings'], '' ),
                         'type' => 'slider',
                         'min' => 0,
@@ -930,63 +930,63 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         'filter_value' => 'yes',
                     ),
                     'frontend_posting_product_backorders' => array(
-                        'name' => __( 'Allow Backorders?', 'super' ),
+                        'name' => __( 'Allow Backorders?', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_backorders', $settings['settings'], 'no' ),
                         'type' => 'select',
                         'values' => array(
-                            'no' => __( 'Do not allow (default)', 'super' ),
-                            'notify' => __( 'Allow, but notify customer', 'super' ),
-                            'yes' => __( 'Allow', 'super' ),
+                            'no' => __( 'Do not allow (default)', 'super-forms' ),
+                            'notify' => __( 'Allow, but notify customer', 'super-forms' ),
+                            'yes' => __( 'Allow', 'super-forms' ),
                         ),
                         'filter' => true,
                         'parent' => 'frontend_posting_product_manage_stock',
                         'filter_value' => 'yes',
                     ),
                     'frontend_posting_product_sold_individually' => array(
-                        'name' => __( 'Sold individually?', 'super' ),
+                        'name' => __( 'Sold individually?', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_sold_individually', $settings['settings'], 'no' ),
                         'type' => 'select',
                         'values' => array(
-                            'no' => __( 'No (default)', 'super' ),
-                            'yes' => __( 'Yes', 'super' ),
+                            'no' => __( 'No (default)', 'super-forms' ),
+                            'yes' => __( 'Yes', 'super-forms' ),
                         ),
                         'filter' => true,
                         'parent' => 'frontend_posting_post_type',
                         'filter_value' => 'product',
                     ),
                     'frontend_posting_product_downloadable' => array(
-                        'name' => __( 'Downloadable product', 'super' ),
+                        'name' => __( 'Downloadable product', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_downloadable', $settings['settings'], 'no' ),
                         'type' => 'select',
                         'values' => array(
-                            'no' => __( 'No (default)', 'super' ),
-                            'yes' => __( 'Yes', 'super' ),
+                            'no' => __( 'No (default)', 'super-forms' ),
+                            'yes' => __( 'Yes', 'super-forms' ),
                         ),
                         'filter' => true,
                         'parent' => 'frontend_posting_post_type',
                         'filter_value' => 'product',
                     ),
                     'frontend_posting_product_virtual' => array(
-                        'name' => __( 'Virtual product', 'super' ),
+                        'name' => __( 'Virtual product', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_virtual', $settings['settings'], 'no' ),
                         'type' => 'select',
                         'values' => array(
-                            'no' => __( 'No (default)', 'super' ),
-                            'yes' => __( 'Yes', 'super' ),
+                            'no' => __( 'No (default)', 'super-forms' ),
+                            'yes' => __( 'Yes', 'super-forms' ),
                         ),
                         'filter' => true,
                         'parent' => 'frontend_posting_post_type',
                         'filter_value' => 'product',
                     ),
                     'frontend_posting_product_visibility' => array(
-                        'name' => __( 'Product visibility', 'super' ),
+                        'name' => __( 'Product visibility', 'super-forms' ),
                         'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_visibility', $settings['settings'], 'visible' ),
                         'type' => 'select',
                         'values' => array(
-                            'visible' => __( 'Catalog & search (default)', 'super' ),
-                            'catalog' => __( 'Catalog', 'super' ),
-                            'search' => __( 'Search', 'super' ),
-                            'hidden' => __( 'Hidden', 'super' ),
+                            'visible' => __( 'Catalog & search (default)', 'super-forms' ),
+                            'catalog' => __( 'Catalog', 'super-forms' ),
+                            'search' => __( 'Search', 'super-forms' ),
+                            'hidden' => __( 'Hidden', 'super-forms' ),
                         ),
                         'filter' => true,
                         'parent' => 'frontend_posting_post_type',
