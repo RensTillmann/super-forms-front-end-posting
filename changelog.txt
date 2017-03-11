@@ -1,4 +1,4 @@
-Feb 03, 2017 - Version 1.1.0
+Mar 12, 2017 - Version 1.1.0
 - Added: Automatic updates
 
 Sep 7, 2016 - Version 1.0.2
