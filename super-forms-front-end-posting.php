@@ -778,6 +778,17 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         }
                     }
                     foreach( $meta_data as $k => $v ) {
+                        // Check for ACF field and check if checkbox, if checkbox save values as Associative Array
+                        if (function_exists('get_field_object')) {
+                            global $wpdb;
+                            $length = strlen($k);
+                            $sql = "SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key LIKE 'field_%' AND meta_value LIKE '%\"name\";s:$length:\"$k\";%';";
+                            $acf_field = $wpdb->get_var($sql);
+                            $acf_field = get_field_object($acf_field);
+                            if( ($acf_field['type']=='checkbox') || ($acf_field['type']=='select') || ($acf_field['type']=='radio') ) {
+                                $v = explode( ",", $v );
+                            }
+                        }
                         add_post_meta( $post_id, $k, $v );
                     }
 

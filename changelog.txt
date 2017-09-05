@@ -1,3 +1,6 @@
+Sep 5, 2017 - Version 1.1.1
+- Improved: ACF checkbox/radio/select(dropdown) compatibility, save comma seperated values as Associative Array
+
 Mar 12, 2017 - Version 1.1.0
 - Added: Automatic updates
 
