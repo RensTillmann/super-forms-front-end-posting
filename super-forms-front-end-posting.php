@@ -11,7 +11,7 @@
  * Plugin Name: Super Forms - Front-end Posting
  * Plugin URI:  http://codecanyon.net/item/super-forms-drag-drop-form-builder/13979866
  * Description: Let visitors create posts from your front-end website
- * Version:     1.1.1
+ * Version:     1.1.2
  * Author:      feeling4design
  * Author URI:  http://codecanyon.net/user/feeling4design
 */
@@ -36,7 +36,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
          *
          *	@since		1.0.0
         */
-        public $version = '1.1.1';
+        public $version = '1.1.2';
 
         
         /**
@@ -764,28 +764,52 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                             $meta_data[$field[1]] = $data[$field[0]]['value'];
                         }else{
                             
-                            // @since 1.0.3 - if no field exists, just save it as a string
-                            $string = SUPER_Common::email_tags( $field[0], $data, $settings );
-                            
-                            // @since 1.0.3 - check if string is serialized array
-                            $unserialize = @unserialize($string);
-                            if ($unserialize !== false) {
-                                $meta_data[$field[1]] = $unserialize;
+                            // @since 1.1.2 - check if type is files
+                            if( ($data[$field[0]]['type']=='files') && (isset($data[$field[0]]['files'])) ) {
+                                if( count($data[$field[0]]['files']>1) ) {
+                                    foreach( $data[$field[0]]['files'] as $fk => $fv ) {
+                                        if($meta_data[$field[1]]==''){
+                                            $meta_data[$field[1]] = $fv['attachment'];
+                                        }else{
+                                            $meta_data[$field[1]] .= ',' . $fv['attachment'];
+                                        }
+                                    }
+                                }elseif( count($data[$field[0]]['files'])==1) {
+                                    $meta_data[$field[1]] = absint($data[$field[0]]['files'][0]['attachment']);
+                                }else{
+                                    $meta_data[$field[1]] = '';
+                                }
+                                continue;
                             }else{
-                                $meta_data[$field[1]] = $string;
+                                // @since 1.0.3 - if no field exists, just save it as a string
+                                $string = SUPER_Common::email_tags( $field[0], $data, $settings );
+                                
+                                // @since 1.0.3 - check if string is serialized array
+                                $unserialize = @unserialize($string);
+                                if ($unserialize !== false) {
+                                    $meta_data[$field[1]] = $unserialize;
+                                }else{
+                                    $meta_data[$field[1]] = $string;
+                                }
                             }
-                            
                         }
                     }
+
                     foreach( $meta_data as $k => $v ) {
-                        // Check for ACF field and check if checkbox, if checkbox save values as Associative Array
+                        // @since 1.1.1 - Check for ACF field and check if checkbox, if checkbox save values as Associative Array
                         if (function_exists('get_field_object')) {
                             global $wpdb;
                             $length = strlen($k);
-                            $sql = "SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key LIKE 'field_%' AND meta_value LIKE '%\"name\";s:$length:\"$k\";%';";
+
+                            // @since 1.1.2 - Because there are major differences between ACF Pro and the regular ACF plugin we have to do different queries
+                            if( class_exists('acf_pro') ) {
+                                $sql = "SELECT post_name FROM {$wpdb->posts} WHERE post_excerpt = '$k' AND post_type = 'acf-field'";
+                            }else{
+                                $sql = "SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key LIKE 'field_%' AND meta_value LIKE '%\"name\";s:$length:\"$k\";%';";
+                            }
                             $acf_field = $wpdb->get_var($sql);
                             $acf_field = get_field_object($acf_field);
-                            if( ($acf_field['type']=='checkbox') || ($acf_field['type']=='select') || ($acf_field['type']=='radio') ) {
+                            if( ($acf_field['type']=='checkbox') || ($acf_field['type']=='select') || ($acf_field['type']=='radio') || ($acf_field['type']=='gallery') ) {
                                 $v = explode( ",", $v );
                             }
                         }
