@@ -1,3 +1,10 @@
+Oct 11, 2017 - Version 1.1.4
+- Improved: Settings "The post categories", "The cat taxonomy name", "The post tags" and "The tag taxonomy name" can now handle {tags} for more flexibility
+
+Sep 11, 2017 - Version 1.1.3
+- Added: Option to save a checkbox or select value
+- Added: Option to save a repeater field value
+
 Sep 6, 2017 - Version 1.1.2
 - Fix: Issue with ACF Pro version not able to retrieve field type because it's saved differently inside database than normal ACF plugin
 - Fix: Issue with Gallery, File, Image field types not saving correctly

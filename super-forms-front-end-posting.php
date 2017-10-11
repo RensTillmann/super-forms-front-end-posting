@@ -11,7 +11,7 @@
  * Plugin Name: Super Forms - Front-end Posting
  * Plugin URI:  http://codecanyon.net/item/super-forms-drag-drop-form-builder/13979866
  * Description: Let visitors create posts from your front-end website
- * Version:     1.1.3
+ * Version:     1.1.4
  * Author:      feeling4design
  * Author URI:  http://codecanyon.net/user/feeling4design
 */
@@ -36,7 +36,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
          *
          *	@since		1.0.0
         */
-        public $version = '1.1.3';
+        public $version = '1.1.4';
 
         
         /**
@@ -484,6 +484,11 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     // Collect categories from the field tax_input
                     if( $tax_input!='' ) {
                         $tax_input_array = array();
+                        
+                        // @since 1.1.4 - replace {tags}
+                        $tax_input = SUPER_Common::email_tags( $tax_input, $data, $settings );
+                        $cat_taxonomy = SUPER_Common::email_tags( $cat_taxonomy, $data, $settings );
+
                         $categories = explode( ",", $tax_input );
                         foreach( $categories as $slug ) {
                             $slug = trim($slug);
@@ -497,6 +502,11 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     // Collect tags from the field tags_input
                     if( $tags_input!='' ) {
                         $tags_input_array = array();
+
+                        // @since 1.1.4 - replace {tags}
+                        $tags_input = SUPER_Common::email_tags( $tags_input, $data, $settings );
+                        $tag_taxonomy = SUPER_Common::email_tags( $tag_taxonomy, $data, $settings );
+
                         $tags = explode( ",", $tags_input );
                         foreach( $tags as $slug ) {
                             $slug = trim($slug);
