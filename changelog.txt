@@ -1,4 +1,4 @@
-Oct 11, 2017 - Version 1.1.4
+Nov 16, 2017 - Version 1.1.4
 - Improved: Settings "The post categories", "The cat taxonomy name", "The post tags" and "The tag taxonomy name" can now handle {tags} for more flexibility
 
 Sep 11, 2017 - Version 1.1.3
