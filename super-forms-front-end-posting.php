@@ -11,7 +11,7 @@
  * Plugin Name: Super Forms - Front-end Posting
  * Plugin URI:  http://codecanyon.net/item/super-forms-drag-drop-form-builder/13979866
  * Description: Let visitors create posts from your front-end website
- * Version:     1.1.4
+ * Version:     1.1.5
  * Author:      feeling4design
  * Author URI:  http://codecanyon.net/user/feeling4design
 */
@@ -36,7 +36,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
          *
          *	@since		1.0.0
         */
-        public $version = '1.1.4';
+        public $version = '1.1.5';
 
         
         /**
@@ -176,7 +176,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
         /**
          * Display activation message for automatic updates
          *
-         *  @since      1.2.1
+         *  @since      1.1.4
         */
         public function display_activation_msg() {
             if( !class_exists('SUPER_Forms') ) {
@@ -801,7 +801,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         }else{
                             
                             // @since 1.1.2 - check if type is files
-                            if( ($data[$field[0]]['type']=='files') && (isset($data[$field[0]]['files'])) ) {
+                            if( (!empty($data[$field[0]])) && ( ($data[$field[0]]['type']=='files') && (isset($data[$field[0]]['files'])) ) ) {
                                 if( count($data[$field[0]]['files']>1) ) {
                                     foreach( $data[$field[0]]['files'] as $fk => $fv ) {
                                         if($meta_data[$field[1]]==''){
