@@ -11,7 +11,7 @@
  * Plugin Name: Super Forms - Front-end Posting
  * Plugin URI:  http://codecanyon.net/item/super-forms-drag-drop-form-builder/13979866
  * Description: Let visitors create posts from your front-end website
- * Version:     1.1.5
+ * Version:     1.2.0
  * Author:      feeling4design
  * Author URI:  http://codecanyon.net/user/feeling4design
 */
@@ -36,7 +36,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
          *
          *	@since		1.0.0
         */
-        public $version = '1.1.5';
+        public $version = '1.2.0';
 
         
         /**
@@ -610,17 +610,81 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                             //update_post_meta( $post_id, '_download_type', '');
 
                         );
+
+                        $product = wc_get_product( absint( $post_id ) );
+
                         foreach( $fields as $k => $v ) {
-                            if( ( $k=='product_sale_price_dates_from' ) || ( $k=='product_sale_price_dates_to' ) ) {
-                                $field_value = '';
-                                if( isset( $data[$k] ) ) {
-                                    if( $data[$k]['value']!='' ) {
-                                        $field_value = strtotime( $data[$k]['value'] );
-                                        update_post_meta( $post_id, $v, $field_value );
-                                    }
+
+                            if( $product ) {
+
+                                $setting_key = 'frontend_posting_' . $k;
+
+                                // @since 1.2.0 - set featured, stock status, visibility, virtual, downloadable, sold method, backorders, stock, manage stock
+                                if( ($k=='product_featured') ||
+                                    ($k=='product_stock_status') || 
+                                    ($k=='product_visibility') || 
+                                    ($k=='product_virtual') ||
+                                    ($k=='product_downloadable') ||
+                                    ($k=='product_sold_individually') ||
+                                    ($k=='product_backorders') ||
+                                    ($k=='product_stock') ||
+                                    ($k=='product_manage_stock') ||
+                                    ($k=='product_sale_price_dates_from') ||
+                                    ($k=='product_sale_price_dates_to') ) {
+                                        $field_value = '';
+                                        if( isset( $settings[$setting_key] ) ) {
+                                            $field_value = wc_clean( $settings[$setting_key] );
+                                        }
+                                        if( !empty($data[$k]) ) {
+                                            $field_value = wc_clean( $data[$k]['value'] );
+                                        }
+                                        switch ( $k ) {
+                                            case 'product_featured' :
+                                                if( $field_value=='yes' ) {
+                                                    $product->set_featured( true );
+                                                }
+                                                break;
+                                            case 'product_stock_status' :
+                                                if( $product_type!='external' ) {
+                                                    $product->set_stock_status( $field_value );
+                                                }
+                                                break; 
+                                            case 'product_visibility' :
+                                                $product->set_catalog_visibility( $field_value );
+                                                break; 
+                                            case 'product_virtual' :
+                                                $product->set_virtual( $field_value );
+                                                break; 
+                                            case 'product_downloadable' :
+                                                $product->set_downloadable( $field_value );
+                                                break; 
+                                            case 'product_sold_individually' :
+                                                $product->set_sold_individually( $field_value );
+                                                break; 
+                                            case 'product_backorders' :
+                                                if( $product_type!='external' ) {
+                                                    $product->set_backorders( $field_value );
+                                                }
+                                                break; 
+                                            case 'product_stock' :
+                                                $product->set_stock_quantity( $field_value );
+                                                break; 
+                                            case 'product_manage_stock' :
+                                                $product->set_manage_stock( $field_value );
+                                                break; 
+                                            case 'product_sale_price_dates_from' :
+                                                $product->set_date_on_sale_from( strtotime($field_value) );
+                                                break; 
+                                            case 'product_sale_price_dates_to' :
+                                                $product->set_date_on_sale_to( strtotime($field_value) );
+                                                break; 
+                                        }
+                                        $product->save();
+                                        continue;
                                 }
-                                continue;
+
                             }
+                         
                             if( $k=='product_downloadable_files' ) {
                                 if( isset( $data['downloadable_files'] ) ) {
                                     $files = array();
@@ -707,9 +771,9 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                                         $_product_attributes[$name]['is_visible'] = $visible;
                                         $_product_attributes[$name]['is_variation'] = $variation;
                                         $_product_attributes[$name]['is_taxonomy'] = $taxonomy;
-                                        update_post_meta( $post_id, '_product_attributes', $_product_attributes);
                                     } 
                                 }
+                                update_post_meta( $post_id, '_product_attributes', $_product_attributes);
                                 continue;
                             }
 
@@ -726,67 +790,57 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                                 $files[] = $v['attachment'];
                             }
                             $files = implode( ',', $files );
-                            update_post_meta( $post_id, '_product_image_gallery', $files );
+
+                            // @since 1.2.0 - use native function for saving gallery images
+                            $product->set_gallery_image_ids( $files );
                         }
 
                         // Sales and prices
                         if ( in_array( $product_type, array( 'variable', 'grouped' ) ) ) {
                             // Variable and grouped products have no prices
-                            update_post_meta( $post_id, '_regular_price', '' );
-                            update_post_meta( $post_id, '_sale_price', '' );
-                            update_post_meta( $post_id, '_sale_price_dates_from', '' );
-                            update_post_meta( $post_id, '_sale_price_dates_to', '' );
-                            update_post_meta( $post_id, '_price', '' );
+                            $product->set_regular_price('');
+                            $product->set_sale_price('');
+                            $product->set_date_on_sale_from('');
+                            $product->set_date_on_sale_to('');
+                            $product->set_price('');
                         }else{
                             // Regular Price
                             if ( isset( $data['product_regular_price'] ) ) {
-                                $regular_price = ( '' === $data['product_regular_price']['value'] ) ? '' : wc_format_decimal( $data['product_regular_price']['value'] );
-                                update_post_meta( $post_id, '_regular_price', $regular_price );
-                            } else {
-                                $regular_price = get_post_meta( $post_id, '_regular_price', true );
+                                $product->set_regular_price($data['product_regular_price']['value']);
                             }
+                            $regular_price = $product->get_regular_price( 'edit' );
 
                             // Sale Price
                             if ( isset( $data['product_sale_price'] ) ) {
-                                $sale_price = ( '' === $data['product_sale_price']['value'] ) ? '' : wc_format_decimal( $data['product_sale_price']['value'] );
-                                update_post_meta( $post_id, '_sale_price', $sale_price );
+                                $product->set_sale_price($data['product_sale_price']['value']);
                             } else {
-                                $sale_price = get_post_meta( $post_id, '_sale_price', true );
+                                $sale_price = $product->get_sale_price( 'edit' );
                             }
-                            $date_from = isset( $data['product_sale_price_dates_from'] ) ? strtotime( $data['product_sale_price_dates_from']['value'] ) : get_post_meta( $post_id, '_sale_price_dates_from', true );
-                            $date_to   = isset( $data['product_sale_price_dates_to'] ) ? strtotime( $data['product_sale_price_dates_to']['value'] ) : get_post_meta( $post_id, '_sale_price_dates_to', true );
+                            $date_from = $product->get_date_on_sale_from( 'edit' );
+                            $date_to = $product->get_date_on_sale_to( 'edit' );
 
-                            // Dates
-                            if ( $date_from ) {
-                                update_post_meta( $post_id, '_sale_price_dates_from', $date_from );
-                            } else {
-                                update_post_meta( $post_id, '_sale_price_dates_from', '' );
-                            }
-                            if ( $date_to ) {
-                                update_post_meta( $post_id, '_sale_price_dates_to', $date_to );
-                            } else {
-                                update_post_meta( $post_id, '_sale_price_dates_to', '' );
-                            }
+                            
                             if ( $date_to && ! $date_from ) {
                                 $date_from = strtotime( 'NOW', current_time( 'timestamp' ) );
-                                update_post_meta( $post_id, '_sale_price_dates_from', $date_from );
+                                $product->set_date_on_sale_from($date_from);
                             }
 
                             // Update price if on sale
                             if ( '' !== $sale_price && '' == $date_to && '' == $date_from ) {
-                                update_post_meta( $post_id, '_price', wc_format_decimal( $sale_price ) );
+                                $product->set_price($sale_price);
                             } else {
-                                update_post_meta( $post_id, '_price', $regular_price );
+                                $product->set_price($regular_price);
                             }
                             if ( '' !== $sale_price && $date_from && $date_from <= strtotime( 'NOW', current_time( 'timestamp' ) ) ) {
-                                update_post_meta( $post_id, '_price', wc_format_decimal( $sale_price ) );
+                                $product->set_price($sale_price);
                             }
                             if ( $date_to && $date_to < strtotime( 'NOW', current_time( 'timestamp' ) ) ) {
-                                update_post_meta( $post_id, '_price', $regular_price );
-                                update_post_meta( $post_id, '_sale_price_dates_from', '' );
-                                update_post_meta( $post_id, '_sale_price_dates_to', '' );
+                                $product->set_price($regular_price);
+                                $product->set_date_on_sale_from('');
+                                $product->set_date_on_sale_to('');
                             }
                         }
+                        $product->save();
                     }
 
                     // Save custom post meta
@@ -902,8 +956,10 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     }
 
                     // Set the featured image if a file upload field with the name featured_image was found
-                    if( isset( $data['featured_image'] ) ) {
-                        set_post_thumbnail( $post_id, $data['featured_image']['files'][0]['attachment'] );
+                    if( !empty( $data['featured_image'] ) ) {
+                        if( !empty( $data['featured_image']['files'] ) ) {
+                            set_post_thumbnail( $post_id, $data['featured_image']['files'][0]['attachment'] );
+                        }
                     }
 
                     // @since 1.0.1

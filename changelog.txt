@@ -1,3 +1,7 @@
+Dec 28, 2017 - Version 1.2.0
+- Fix: Featured product setting not working with latest versions of WooCommerce
+- Improved: Now using natie WC core functions to create product
+
 Nov 27, 2017 - Version 1.1.5
 - Fix: PHP warning
 
