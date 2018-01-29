@@ -280,12 +280,12 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 'required' => true
             );
             $taxonomy['cat_taxonomy'] = array(
-                'name' => __( 'The cat taxonomy name (e.g: post_tag or product_tag)', 'super-forms' ),
+                'name' => __( 'The cat taxonomy name (e.g: category or product_cat)', 'super-forms' ),
                 'desc' => __( 'Required to connect the post to categories (if found)', 'super-forms' ),
                 'default'=> ( !isset( $attributes['cat_taxonomy'] ) ? '' : $attributes['cat_taxonomy'] ),
                 'filter' => true,
                 'parent' => 'name',
-                'filter_value' => 'tags_input',
+                'filter_value' => 'tax_input',
                 'required' => true
             );
             $res = $res + $taxonomy + array_slice($fields_array, 1, count($fields_array) - 1, true);
