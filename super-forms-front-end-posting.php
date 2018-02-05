@@ -323,8 +323,8 @@ if(!class_exists('SUPER_Frontend_Posting')) :
             if( $settings['frontend_posting_action']=='create_post' ) {
                 
                 // post_title and post_content are required so let's check if these are both set
-                if( !isset( $data['post_title'] ) ) {
-                    $msg = __( 'We couldn\'t find the <strong>post_title</strong> field which is required in order to create a new post. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again', 'super-forms' );
+                if( (!isset( $data['post_title'])) || (!isset($data['post_content'])) ) {
+                    $msg = __( 'We couldn\'t find the <strong>post_title</strong> and <strong>post_content</strong> fields which are required in order to create a new post. Please <a href="' . get_admin_url() . 'admin.php?page=super_create_form&id=' . absint( $atts['post']['form_id'] ) . '">edit</a> your form and try again', 'super-forms' );
                     SUPER_Common::output_error(
                         $error = true,
                         $msg = $msg,
