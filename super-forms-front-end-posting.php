@@ -11,7 +11,7 @@
  * Plugin Name: Super Forms - Front-end Posting
  * Plugin URI:  http://codecanyon.net/item/super-forms-drag-drop-form-builder/13979866
  * Description: Let visitors create posts from your front-end website
- * Version:     1.2.0
+ * Version:     1.2.1
  * Author:      feeling4design
  * Author URI:  http://codecanyon.net/user/feeling4design
 */
@@ -36,7 +36,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
          *
          *	@since		1.0.0
         */
-        public $version = '1.2.0';
+        public $version = '1.2.1';
 
         
         /**
@@ -1120,6 +1120,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         'filter' => true,
                         'parent' => 'frontend_posting_action',
                         'filter_value' => 'create_post',
+                        'allow_empty' => true,
                     ),
                     'frontend_posting_author' => array(
                         'name' => __( 'Author ID (default = current user ID if logged in)', 'super-forms' ),
@@ -1199,7 +1200,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     ),
                     'frontend_posting_product_stock_status' => array(
                         'name' => __( 'In stock?', 'super-forms' ),
-                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_stock_status', $settings['settings'], 'yes' ),
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_product_stock_status', $settings['settings'], 'instock' ),
                         'type' => 'select',
                         'values' => array(
                             'instock' => __( 'In stock (default)', 'super-forms' ),
