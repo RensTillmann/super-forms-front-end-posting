@@ -847,8 +847,8 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                     $meta_data = array();
                     $custom_meta = explode( "\n", $settings['frontend_posting_meta'] );
                     foreach( $custom_meta as $k ) {
+                        if(empty($k)) continue;
                         $field = explode( "|", $k );
-
                         // @since 1.0.3 - first check if a field with the name exists
                         if( isset( $data[$field[0]]['value'] ) ) {
                             $meta_data[$field[1]] = $data[$field[0]]['value'];
