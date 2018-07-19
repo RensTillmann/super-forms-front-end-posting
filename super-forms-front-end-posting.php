@@ -1064,6 +1064,19 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                             'create_post' => __( 'Create new Post', 'super-forms' ), //(post, page, product etc.)
                         ),
                     ),
+
+                    // @since 1.2.2 - option to redirect to the newly created post
+                    'frontend_posting_redirect' => array(
+                        'default' => SUPER_Settings::get_value( 0, 'frontend_posting_redirect', $settings['settings'], '' ),
+                        'type' => 'checkbox',
+                        'values' => array(
+                            'true' => __( 'Redirect to the created Post after form submission', 'super-forms' ),
+                        ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_action',
+                        'filter_value' => 'create_post',
+                    ),
+
                     'frontend_posting_post_type' => array(
                         'name' => __( 'Post type', 'super-forms' ),
                         'desc' => __( 'Enter the name of the post type (e.g: post, page, product)', 'super-forms' ),
@@ -1327,17 +1340,6 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         'filter_value' => 'product',
                     ),
 
-                    // @since 1.2.2 - option to redirect to the newly created post
-                    'frontend_posting_redirect' => array(
-                        'default' => self::get_value( $default, 'frontend_posting_redirect', $settings, '' ),
-                        'type' => 'checkbox',
-                        'values' => array(
-                            'true' => __( 'Redirect to the created Post', 'super-forms' ),
-                        ),
-                        'filter' => true,
-                        'parent' => 'frontend_posting_action',
-                        'filter_value' => 'create_post',
-                    ),
                 )
             );
             return $array;
