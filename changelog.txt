@@ -1,3 +1,6 @@
+Jul 19, 2018 - Version 1.2.2
+- Added: Option to redirect to the newly created Post after form submission
+
 Feb 15, 2018 - Version 1.2.1
 - Fix: Allow settings to be empty for new Super Forms versions (values that can be left empty must not be overwritten by default value)
 

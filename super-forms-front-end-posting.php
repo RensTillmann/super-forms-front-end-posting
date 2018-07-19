@@ -11,7 +11,7 @@
  * Plugin Name: Super Forms - Front-end Posting
  * Plugin URI:  http://codecanyon.net/item/super-forms-drag-drop-form-builder/13979866
  * Description: Let visitors create posts from your front-end website
- * Version:     1.2.1
+ * Version:     1.2.2
  * Author:      feeling4design
  * Author URI:  http://codecanyon.net/user/feeling4design
 */
@@ -36,7 +36,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
          *
          *	@since		1.0.0
         */
-        public $version = '1.2.1';
+        public $version = '1.2.2';
 
         
         /**
@@ -132,9 +132,13 @@ if(!class_exists('SUPER_Frontend_Posting')) :
             
             // @since 1.1.0
             register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
+
             // Filters since 1.1.0
             add_filter( 'super_after_activation_message_filter', array( $this, 'activation_message' ), 10, 2 );
 
+            // Filters since 1.2.2
+            add_filter( 'super_redirect_url_filter', array( $this, 'redirect_to_post' ), 10, 2 );
+            
 
             if ( $this->is_request( 'frontend' ) ) {
                 
@@ -253,6 +257,28 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                 }
             }
             return $activation_msg;
+        }
+
+
+        /**
+         * Redirect to newly created Post
+         * 
+         * @since       1.2.2
+        */
+        public function redirect_to_post( $url, $attr ) {
+
+            // Only check for URL in the session if setting was enabled
+            // Check if option to redirect to created post is enabled in form settings
+            if( !empty($attr['settings']['frontend_posting_redirect'] ) ) {
+           
+                // If setting was enabled, let's check if we can find the Post ID in the stored session
+                $post_id = SUPER_Forms()->session->get( 'super_forms_frontend_posting_created_post' );
+                $url = get_permalink( $post_id );
+                
+                // Make sure to reset the session to clear it from the database, and so that we won't have a redirect conflict with other possible forms
+                SUPER_Forms()->session->set( 'super_forms_frontend_posting_created_post', false );
+            }
+            return $url;
         }
 
 
@@ -962,6 +988,10 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         }
                     }
 
+                    // Store the created post ID into a session, to either alter the redirect URL or for developers to use in their custom code
+                    // The redirect URL will only be altered if the option to do so was enabled in the form settings.
+                    SUPER_Forms()->session->set( 'super_forms_frontend_posting_created_post', $post_id );
+
                     // @since 1.0.1
                     do_action( 'super_front_end_posting_after_insert_post_action', array( 'post_id'=>$post_id, 'data'=>$data, 'atts'=>$atts ) );
 
@@ -1295,7 +1325,19 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         'filter' => true,
                         'parent' => 'frontend_posting_post_type',
                         'filter_value' => 'product',
-                    )
+                    ),
+
+                    // @since 1.2.2 - option to redirect to the newly created post
+                    'frontend_posting_redirect' => array(
+                        'default' => self::get_value( $default, 'frontend_posting_redirect', $settings, '' ),
+                        'type' => 'checkbox',
+                        'values' => array(
+                            'true' => __( 'Redirect to the created Post', 'super-forms' ),
+                        ),
+                        'filter' => true,
+                        'parent' => 'frontend_posting_action',
+                        'filter_value' => 'create_post',
+                    ),
                 )
             );
             return $array;
