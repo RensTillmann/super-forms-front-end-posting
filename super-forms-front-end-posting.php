@@ -374,36 +374,104 @@ if(!class_exists('SUPER_Frontend_Posting')) :
 
                         $order = wc_create_order();
 
-                        // Apply discount in percentages
-                        $total_discount = 0;
-                        $discount = array(
-                            'code' => '10discount',
-                            'amount' => 10 // pennies
-                        );
-
-                        // Loop through all products that need to be added
+                        // Define the products and their quantity to be added to this order
+                        // Product_ID => Quantity
                         $products = array( 
                             '34293' => 1,
                             '34499' => 2
                         );
+
+                        // Add products to the order
                         foreach($products as $pid => $quantity){
                             $product_to_add = get_product( $pid );
-                            $sale_price = $product_to_add->get_price();
-                            // Here we calculate the final price with the discount
-                            $total_discount = $total_discount + round((($sale_price/100) * $discount['amount']), 2);
-                            $final_price = round($sale_price - (($sale_price/100) * $discount['amount']), 2);
-                            // Create the price params that will be passed with add_product(), if you have taxes you will need to calculate them here too
-                            $price_params = array( 'totals' => array( 'subtotal' => $sale_price, 'total' => $final_price ) );
+                            $price = $product_to_add->get_price();
+                            $price_params = array( 'totals' => array( 'subtotal' => $price, 'total' => $price ) );
                             $order->add_product( get_product( $pid ), $quantity, $price_params ); // pid 8 & qty 1
                         }
+                        $order->calculate_totals();
 
                         // Set billing and shipping addresses
                         $order->set_address( $address_billing, 'billing' );
                         $order->set_address( $address_shipping, 'shipping' );
 
                         // Add the coupon
-                        $order->add_coupon( $discount['code'], $total_discount ); // not pennies (use dollars amount)
-                        $order->set_total( ($discount['amount']/100) , 'order_discount'); // not pennies (use dollars amount)
+                        $coupon_code = 'coupon4';
+                        $result = $order->apply_coupon( wc_clean( $coupon_code ) );
+                        
+                        $order->update_status("Completed", 'Imported order', TRUE); 
+                        $order->save();
+                        exit;       
+
+                        // coupon1 = Percentage discount
+                        // coupon2 = Fixed cart discount
+                        // coupon3 = Fixed product discount
+                        // coupon4 = Percentage discount + Free shipping
+
+                        // Define discount based on the coupon code
+                        /*$coupon_code = 'coupon2';
+                        $coupon = new WC_Coupon($coupon_code);
+                        $total_discount = 0;
+                        $discount = array(
+                            'code' => $coupon_code,
+                            'type' => $coupon->get_discount_type(),
+                            'amount' => $coupon->get_amount() // pennies
+                        );
+
+                        // Check if the coupon code exists, if so apply the coupon code to the order
+                        if( $discount['type']=='fixed_cart' && $coupon->get_amount()==0 ) {
+                            // nothing to do here, skip adding coupon
+                        }else{
+                            //var_dump($coupon->get_discount_type());
+                            //var_dump($coupon->get_amount());
+                            //var_dump($coupon);
+                            // Check if coupon type is "Percentage discount"
+                            if($discount['type']=='percent'){
+                                // Loop through all products that need to be added
+                                foreach($products as $pid => $quantity){
+                                    $product_to_add = get_product( $pid );
+                                    $sale_price = $product_to_add->get_price();
+                                    // Here we calculate the final price with the discount
+                                    $total_discount = $total_discount + round((($sale_price/100) * $discount['amount']), 2);
+                                    $final_price = round($sale_price - (($sale_price/100) * $discount['amount']), 2);
+                                    // Create the price params that will be passed with add_product(), if you have taxes you will need to calculate them here too
+                                    $price_params = array( 'totals' => array( 'subtotal' => $sale_price, 'total' => $final_price ) );
+                                    $order->add_product( get_product( $pid ), $quantity, $price_params ); // pid 8 & qty 1
+                                }
+                                // Set billing and shipping addresses
+                                $order->set_address( $address_billing, 'billing' );
+                                $order->set_address( $address_shipping, 'shipping' );
+                                // Add the coupon
+                                $order->add_coupon( $discount['code'], $total_discount ); // not pennies (use dollars amount)
+                                $order->set_total( ($discount['amount']/100) , 'order_discount'); // not pennies (use dollars amount)
+                            }
+
+                            // Check if coupon type is "Fixed cart discount"
+                            if($discount['type']=='fixed_cart'){
+                            }
+
+                            // Check if coupon type is "Fixed product discount"
+                            if($discount['type']=='fixed_product'){
+                            }
+                        }
+                        */
+
+                        /*
+                        // Now you can get type in your condition
+                        if ( $coupon->get_discount_type() == 'cash_back_percentage' ){
+                            // Get the coupon object amount
+                            $coupons_amount1 = $coupon->get_amount();
+                        }
+
+                        // Or use this other conditional method for coupon type
+                        if( $coupon->is_type( 'cash_back_fixed' ) ){
+                            // Get the coupon object amount
+                            $coupons_amount2 = $coupon->get_amount();
+                        }
+                        */
+
+                        //var_dump($coupon['discount_type']);
+                        // Discount types: percent, fixed_cart, fixed_product
+
                         
                         // Optionally set payment method
                         //$order->set_payment_method($this);
@@ -412,12 +480,12 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                         //$rate = new WC_Shipping_Rate(  $response_body['shippingMethodCode'] , $ship_method_title, ($response_body['shippingCost']/100), array(), $response_body['shippingMethodCode'] );
                         //$order->add_shipping( $rate );
 
-                        $order->calculate_totals();
-                        $order->update_status("Completed", 'Imported order', TRUE); 
+                        //$order->calculate_totals();
+                        //$order->update_status("Completed", 'Imported order', TRUE); 
                         //$return_url = $this->get_return_url( $order );
                         //$order->add_coupon('10discount');
                         //$order->add_coupon('10discount', '10', '2'); // accepted param $couponcode, $couponamount, $coupon_tax
-                        exit;
+                        
 
                         /*
                         // Create the coupon
@@ -436,8 +504,12 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                                 $order_item->save();
                             }
                         }
-                        $order->save();
                         */
+                        //$order->save();
+                        //$order->apply_coupon( wc_clean( $coupon_code ) );
+                        //exit;
+
+
                     }
 
                     // If creating an order subscription
