@@ -11,7 +11,7 @@
  * Plugin Name: Super Forms - Front-end Posting
  * Plugin URI:  http://codecanyon.net/item/super-forms-drag-drop-form-builder/13979866
  * Description: Let visitors create posts from your front-end website
- * Version:     1.2.3
+ * Version:     1.2.4
  * Author:      feeling4design
  * Author URI:  http://codecanyon.net/user/feeling4design
 */
@@ -36,7 +36,7 @@ if(!class_exists('SUPER_Frontend_Posting')) :
          *
          *	@since		1.0.0
         */
-        public $version = '1.2.3';
+        public $version = '1.2.4';
 
         
         /**
@@ -1196,6 +1196,13 @@ if(!class_exists('SUPER_Frontend_Posting')) :
                                     $sql = "SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key LIKE 'field_%' AND meta_value LIKE '%\"name\";s:$length:\"$k\";%';";
                                 }
                                 $acf_field = $wpdb->get_var($sql);
+
+                                // @since 1.2.4 - It might be possible we are using the ACF Gallery Add-on here for the none pro version, in this case we must do a different query
+                                if(!$acf_field){
+                                    $sql = "SELECT post_name FROM {$wpdb->posts} WHERE post_excerpt = '$k' AND post_type = 'acf-field'";
+                                    $acf_field = $wpdb->get_var($sql);
+                                }
+
                                 $acf_field = get_field_object($acf_field);
 
                                 // @since 1.1.3 - save a checkbox or select value

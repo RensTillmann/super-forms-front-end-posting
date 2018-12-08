@@ -1,3 +1,6 @@
+Dec 06, 2018 - Version 1.2.4
+- Added: Compatibility with "ACF Photo Gallery Field" plugin
+
 Nov 01, 2018 - Version 1.2.3
 - Added: Option to save product attributes
 
